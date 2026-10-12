@@ -1,5 +1,4 @@
 
-
 <?php
 $sellerName = session()->get('seller_name') ?? 'Seller';
 $sellerStatus = session()->get('seller_status') ?? 'pending';
@@ -13,46 +12,9 @@ $recentOrders = $recentOrders ?? [];
 
 
 
-<!-- <div class="aj-dashboard"> -->
 
-    
 
-    <!-- MAIN CONTENT -->
-    <main class="aj-dashboard-main">
-
-        <!-- TOPBAR -->
-        <header class="aj-topbar">
-
-            <div class="d-flex align-items-center gap-3">
-                <button class="aj-mobile-menu"
-                        type="button"
-                        id="ajMobileMenu"
-                        aria-label="Open menu">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-
-                <div class="aj-search">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="search"
-                           placeholder="Search dashboard..."
-                           aria-label="Search dashboard">
-                </div>
-            </div>
-
-            <div class="aj-profile">
-                <div class="text-end d-none d-sm-block">
-                    <div class="fw-bold">
-                        <?= esc($sellerName) ?>
-                    </div>
-                    <small class="text-muted">Seller account</small>
-                </div>
-
-                <div class="aj-avatar">
-                    <?= esc(strtoupper(substr($sellerName, 0, 1))) ?>
-                </div>
-            </div>
-
-        </header>
+        
 
         <div class="aj-content">
 
@@ -132,7 +94,7 @@ $recentOrders = $recentOrders ?? [];
 
             <div class="aj-quick-grid">
 
-                <a href="<?= site_url('seller/products/create') ?>"
+                <a href="<?= site_url('seller/products/add') ?>"
                    class="aj-quick-card">
                     <i class="fa-solid fa-circle-plus"></i>
                     <div>
@@ -242,7 +204,5 @@ $recentOrders = $recentOrders ?? [];
             </div>
 
         </div>
-    </main>
-<!-- </div> -->
 
 

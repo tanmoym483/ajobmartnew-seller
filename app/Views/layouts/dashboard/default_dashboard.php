@@ -1,3 +1,11 @@
+<?php
+$session = session();
+
+if (!$session->has('seller_id')) {
+    return redirect()->to('/login');
+}
+?>
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -542,13 +550,19 @@
 </head>
 <body>
 
-<?= view('layouts/dashboard/header') ?>
 
 
 <div class="aj-dashboard">
-<?= view('layouts/dashboard/sidebar') ?>
 
-<?= $content ?>
+        <?= view('layouts/dashboard/sidebar') ?>
+
+    <main class="aj-dashboard-main">
+
+        <?= view('layouts/dashboard/header') ?>
+
+        <?= $content ?>
+
+    </main>
 </div>
 
 <?= view('layouts/dashboard/mobile_bottom_nav') ?>
@@ -628,6 +642,70 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.addEventListener('resize', function () {
         if (window.innerWidth > 767) closeSidebar();
+    });
+});
+
+
+
+
+
+
+$('#productForm').on('submit', function (e) {
+    e.preventDefault();
+
+    const form = this;
+    const button = $('#submitProduct');
+    const oldText = button.html();
+
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    $.ajax({
+        url: "<?= site_url('seller/products/store') ?>",
+        type: 'POST',
+        data: new FormData(form),
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+
+        beforeSend: function () {
+            button.prop('disabled', true).text('Saving...');
+        },
+
+        success: function (response) {
+            if (response.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: response.message || 'Product saved successfully!'
+                }).then(() => {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                });
+            } else {
+                Swal.fire(
+                    'Error',
+                    response.message || 'Unable to save product.',
+                    'error'
+                );
+            }
+        },
+
+        error: function (xhr) {
+            console.error(xhr.responseText);
+
+            const message = xhr.responseJSON?.message
+                || 'Request failed. Check your controller and server logs.';
+
+            Swal.fire('Error', message, 'error');
+        },
+
+        complete: function () {
+            button.prop('disabled', false).html(oldText);
+        }
     });
 });
 </script>

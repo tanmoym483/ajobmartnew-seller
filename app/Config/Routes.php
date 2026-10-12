@@ -21,3 +21,14 @@ $routes->post('seller/register/send-otp', 'SellerAuth::sendOtp');
 // $routes->get('seller/register/verify', 'SellerAuth::verifyPage');
 $routes->post('seller/register/verify-otp', 'SellerAuth::verifyOtp');
 $routes->post('seller/register/resend-otp', 'SellerAuth::resendOtp');
+
+
+$routes->get(
+    'seller/products/add',
+    'SellerProducts::add'
+);
+
+$routes->post(
+    'seller/products/store',
+    'SellerProducts::store'
+);
