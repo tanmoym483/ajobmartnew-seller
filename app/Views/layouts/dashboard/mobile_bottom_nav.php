@@ -1,5 +1,5 @@
 <!-- MOBILE BOTTOM NAVIGATION -->
-<nav class="aj-bottom-nav" aria-label="Seller mobile navigation">
+<nav class="aj-bottom-nav mt-4" aria-label="Seller mobile navigation">
 
     <a href="<?= site_url('seller/dashboard') ?>"
        class="active">

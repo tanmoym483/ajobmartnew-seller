@@ -11,11 +11,6 @@ $recentOrders = $recentOrders ?? [];
 ?>
 
 
-
-
-
-        
-
         <div class="aj-content">
 
             <!-- WELCOME -->

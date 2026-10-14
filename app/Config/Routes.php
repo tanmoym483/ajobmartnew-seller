@@ -32,3 +32,12 @@ $routes->post(
     'seller/products/store',
     'SellerProducts::store'
 );
+
+$routes->get('seller/inventory', 'SellerProducts::inventory');
+
+$routes->get('shared-images/(:any)', 'SharedImages::show/$1');
+
+$routes->post(
+    'seller/products/shipping-allowance',
+    'SellerProducts::shippingAllowance'
+);

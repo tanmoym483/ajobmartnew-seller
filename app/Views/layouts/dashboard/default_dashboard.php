@@ -556,7 +556,7 @@ if (!$session->has('seller_id')) {
 
         <?= view('layouts/dashboard/sidebar') ?>
 
-    <main class="aj-dashboard-main">
+    <main class="aj-dashboard-main mb-4">
 
         <?= view('layouts/dashboard/header') ?>
 
@@ -568,55 +568,20 @@ if (!$session->has('seller_id')) {
 <?= view('layouts/dashboard/mobile_bottom_nav') ?>
 
 
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- Page-specific scripts defined by child views -->
+<?= $this->renderSection('scripts') ?>
 
-
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-
-    const sidebar = document.getElementById('ajSidebar');
-    const overlay = document.getElementById('ajSidebarOverlay');
-    const menuButton = document.getElementById('ajMobileMenu');
-
-    function closeSidebar() {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('show');
-    }
-
-    menuButton?.addEventListener('click', function () {
-        sidebar.classList.toggle('open');
-        overlay.classList.toggle('show');
-    });
-
-    overlay?.addEventListener('click', closeSidebar);
-
-    document.querySelectorAll('.aj-nav-link').forEach(function (link) {
-        link.addEventListener('click', function () {
-            if (window.innerWidth <= 767) {
-                closeSidebar();
-            }
-        });
-    });
-
-});
-</script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const sidebar = document.getElementById('ajSidebar');
     const overlay = document.getElementById('ajSidebarOverlay');
     const topMenu = document.getElementById('ajMobileMenu');
     const bottomMore = document.getElementById('ajBottomMore');
-
-    function openSidebar() {
-        sidebar?.classList.add('open');
-        overlay?.classList.add('show');
-        bottomMore?.setAttribute('aria-expanded', 'true');
-    }
 
     function closeSidebar() {
         sidebar?.classList.remove('open');
@@ -628,7 +593,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (sidebar?.classList.contains('open')) {
             closeSidebar();
         } else {
-            openSidebar();
+            sidebar?.classList.add('open');
+            overlay?.classList.add('show');
+            bottomMore?.setAttribute('aria-expanded', 'true');
         }
     }
 
@@ -638,74 +605,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') closeSidebar();
-    });
-
-    window.addEventListener('resize', function () {
-        if (window.innerWidth > 767) closeSidebar();
-    });
-});
-
-
-
-
-
-
-$('#productForm').on('submit', function (e) {
-    e.preventDefault();
-
-    const form = this;
-    const button = $('#submitProduct');
-    const oldText = button.html();
-
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-    }
-
-    $.ajax({
-        url: "<?= site_url('seller/products/store') ?>",
-        type: 'POST',
-        data: new FormData(form),
-        processData: false,
-        contentType: false,
-        dataType: 'json',
-
-        beforeSend: function () {
-            button.prop('disabled', true).text('Saving...');
-        },
-
-        success: function (response) {
-            if (response.status === 'success') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: response.message || 'Product saved successfully!'
-                }).then(() => {
-                    if (response.redirect) {
-                        window.location.href = response.redirect;
-                    }
-                });
-            } else {
-                Swal.fire(
-                    'Error',
-                    response.message || 'Unable to save product.',
-                    'error'
-                );
-            }
-        },
-
-        error: function (xhr) {
-            console.error(xhr.responseText);
-
-            const message = xhr.responseJSON?.message
-                || 'Request failed. Check your controller and server logs.';
-
-            Swal.fire('Error', message, 'error');
-        },
-
-        complete: function () {
-            button.prop('disabled', false).html(oldText);
-        }
     });
 });
 </script>

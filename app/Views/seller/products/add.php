@@ -600,6 +600,60 @@ textarea { min-height: 110px; resize: vertical; }
                                           placeholder="Enter product specifications"></textarea>
                             </div>
                         </div>
+                        
+                        <!-- Country of origin -->
+                        <div class="field">
+                            <label for="country_of_origin">Country of Origin</label>
+                            <select id="country_of_origin" name="country_of_origin">
+                                <option value="">Select country</option>
+                                <option value="India">India</option>
+                                <option value="China">China</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <!-- HSN code -->
+                        <div class="field">
+                            <label for="hsn_code">HSN Code</label>
+                            <input type="text"
+                                id="hsn_code"
+                                name="hsn_code"
+                                maxlength="20"
+                                placeholder="Enter applicable HSN code">
+                        </div>
+
+                        <!-- Manufacturer -->
+                        <div class="field">
+                            <label for="manufacturer_name">Manufacturer / Importer</label>
+                            <input type="text"
+                                id="manufacturer_name"
+                                name="manufacturer_name"
+                                maxlength="200"
+                                placeholder="Enter manufacturer name">
+                        </div>
+
+                        <!-- Model number -->
+                        <!-- <div class="field">
+                            <label for="model_number_general">Model Number</label>
+                            <input type="text"
+                                id="model_number_general"
+                                name="model_number_general"
+                                maxlength="100"
+                                placeholder="Enter model number">
+                        </div> -->
+
+                        <!-- Key features -->
+                        <div class="field full">
+                            <label for="key_features">Key Features</label>
+                            <textarea id="key_features"
+                                    name="key_features"
+                                    maxlength="3000"
+                                    placeholder="Enter the main product features"></textarea>
+                            <div class="help">
+                                Enter one feature per line.
+                            </div>
+                        </div>
+
 
                     </div>
 
@@ -627,12 +681,12 @@ textarea { min-height: 110px; resize: vertical; }
                                    min="0.01" step="0.01" required>
                         </div>
 
-                        <div class="field">
+                        <!-- <div class="field">
                             <label for="selling_price">Selling Price (₹) <span>*</span></label>
                             <input type="number" id="selling_price"
                                    name="selling_price" min="0.01"
                                    step="0.01" required>
-                        </div>
+                        </div> -->
 
                         <div class="field">
                             <label for="stock_quantity">Stock Quantity <span>*</span></label>
@@ -647,9 +701,82 @@ textarea { min-height: 110px; resize: vertical; }
                         </div>
 
                         <div class="field">
+                            <label for="length">Length (cm)</label>
+                            <input type="number"
+                                id="length"
+                                name="length"
+                                min="0"
+                                step="0.01"
+                                placeholder="e.g. 30">
+                        </div>
+
+                        <div class="field">
+                            <label for="width">Width (cm)</label>
+                            <input type="number"
+                                id="width"
+                                name="width"
+                                min="0"
+                                step="0.01"
+                                placeholder="e.g. 20">
+                        </div>
+
+                        <div class="field">
+                            <label for="height">Height (cm)</label>
+                            <input type="number"
+                                id="height"
+                                name="height"
+                                min="0"
+                                step="0.01"
+                                placeholder="e.g. 15">
+                        </div>
+
+                        <div class="field">
                             <label for="shipping_weight">Shipping Weight (kg)</label>
-                            <input type="number" id="shipping_weight"
-                                   name="shipping_weight" min="0" step="0.001">
+                            <input type="number"
+                                id="shipping_weight"
+                                name="shipping_weight"
+                                min="0"
+                                step="0.001"
+                                placeholder="e.g. 1.5">
+                        </div>
+
+                        <div class="field">
+                            <label for="selling_price">
+                                Seller's Base Selling Price (₹) *
+                            </label>
+                            <input type="number"
+                                id="selling_price"
+                                name="selling_price"
+                                min="0.01"
+                                step="0.01"
+                                required>
+                        </div>
+
+                        <div class="field">
+                            <label for="shipping_allowance">
+                                Estimated Shipping Allowance (₹)
+                            </label>
+                            <input type="number"
+                                id="shipping_allowance"
+                                name="shipping_allowance"
+                                readonly>
+
+                            <small id="shippingAllowanceMessage" class="text-muted">
+                                Enter product dimensions and weight to calculate shipping.
+                            </small>
+                        </div>
+
+                        <div class="field full">
+                            <label for="final_listing_price">
+                                Final Listing Price (₹)
+                            </label>
+                            <input type="number"
+                                id="final_listing_price"
+                                name="final_listing_price"
+                                readonly>
+                            <div class="help">
+                                Automatically calculated from your base price and shipping allowance.
+                            </div>
                         </div>
 
                         <div class="field">
@@ -735,6 +862,8 @@ textarea { min-height: 110px; resize: vertical; }
     </div>
 </div>
 
+<?= $this->section('scripts') ?>
+
 <script>
 const form = document.getElementById('productForm');
 const steps = [...document.querySelectorAll('.product-step')];
@@ -813,10 +942,11 @@ function validateStep(number) {
     if (number === 3) {
         const mrp = Number(document.getElementById('mrp').value);
         const price = Number(document.getElementById('selling_price').value);
+        const listprice = Number(document.getElementById('final_listing_price').value);
 
-        if (price > mrp) {
-            alert('Selling price should not be higher than MRP.');
-            document.getElementById('selling_price').focus();
+        if (listprice > mrp) {
+            alert('Final Listing price should not be higher than MRP.');
+            document.getElementById('final_listing_price').focus();
             return false;
         }
     }
@@ -924,6 +1054,9 @@ function buildReview() {
     const category = selectedCategory();
     const mrp = Number(getValue('mrp') || 0);
     const price = Number(getValue('selling_price') || 0);
+    const listprice = Number(getValue('final_listing_price') || 0);
+    const shippingallowance = Number(getValue('shipping_allowance') || 0);
+
     const discount = mrp > 0 ? Math.max(0, (mrp - price) / mrp * 100) : 0;
 
     const rows = [
@@ -935,8 +1068,13 @@ function buildReview() {
         ['Condition', getValue('condition')],
         ['MRP', '₹' + mrp.toFixed(2)],
         ['Selling Price', '₹' + price.toFixed(2)],
+        ['Listing Price', '₹' + listprice.toFixed(2)],
+        ['Shipping Allowance', '₹' + shippingallowance.toFixed(2)],
         ['Discount', discount.toFixed(1) + '%'],
         ['Available Stock', getValue('stock_quantity')],
+        ['Length', getValue('length') + ' cm'],
+        ['Width', getValue('width') + ' cm'],
+        ['Height', getValue('height') + ' cm'],
         ['Shipping Weight', getValue('shipping_weight') + ' kg'],
         ['Dispatch Time', getValue('shipping_days') + ' day(s)'],
         ['Images', imageFiles.length + ' selected'],
@@ -1000,129 +1138,207 @@ showStep(1);
 
 
 
-// $(document).ready(function () {
 
-//     $('#productForm').on('submit', function (e) {
-//         e.preventDefault();
 
-//         const form = this;
-//         const $button = $('#submitProduct');
-//         const originalText = $button.html();
 
-//         // Browser validation
-//         if (!form.checkValidity()) {
-//             form.reportValidity();
-//             return;
-//         }
+$(document).on('submit', '#productForm', function (e) {
+    e.preventDefault();
 
-//         // Validate images if the input exists
-//         const imageInput = form.querySelector(
-//             'input[name="product_images[]"]'
-//         );
+    const form = this;
+    const button = $('#submitProduct');
+    const oldText = button.html();
 
-//         if (imageInput && imageInput.files.length === 0) {
-//             Swal.fire({
-//                 icon: 'warning',
-//                 title: 'Product Images Required',
-//                 text: 'Please select at least one product image.'
-//             });
-//             return;
-//         }
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
 
-//         if (imageInput && imageInput.files.length > 8) {
-//             Swal.fire({
-//                 icon: 'warning',
-//                 title: 'Too Many Images',
-//                 text: 'You can upload a maximum of 8 images.'
-//             });
-//             return;
-//         }
+    $.ajax({
+        url: "<?= site_url('seller/products/store') ?>",
+        type: 'POST',
+        data: new FormData(form),
+        processData: false,
+        contentType: false,
+        dataType: 'json',
 
-//         if (imageInput) {
-//             for (const file of imageInput.files) {
-//                 if (file.size > 5 * 1024 * 1024) {
-//                     Swal.fire({
-//                         icon: 'warning',
-//                         title: 'Image Too Large',
-//                         text: file.name + ' exceeds the 5 MB limit.'
-//                     });
-//                     return;
-//                 }
-//             }
-//         }
+        beforeSend: function () {
+            button.prop('disabled', true).text('Saving...');
+        },
 
-//         $.ajax({
-//             url: "<?= site_url('seller/products/store') ?>",
-//             type: 'POST',
-//             data: new FormData(form),
-//             processData: false,
-//             contentType: false,
-//             dataType: 'json',
+        success: function (response) {
+            console.log('Product save response:', response);
 
-//             beforeSend: function () {
-//                 $button
-//                     .prop('disabled', true)
-//                     .html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
-//             },
+            if (response.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: response.message || 'Product saved successfully!'
+                }).then(function () {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    } else {
+                        console.error('Redirect URL is missing.');
+                    }
+                });
+            } else {
+                Swal.fire(
+                    'Error',
+                    response.message || 'Unable to save product.',
+                    'error'
+                );
+            }
+        },
 
-//             success: function (response) {
+        error: function (xhr) {
+            console.error('HTTP status:', xhr.status);
+            console.error('Response:', xhr.responseText);
 
-//                 if (response.status === 'success') {
+            Swal.fire(
+                'Error',
+                xhr.responseJSON?.message || 'Unable to save product.',
+                'error'
+            );
+        },
 
-//                     Swal.fire({
-//                         icon: 'success',
-//                         title: 'Product Saved!',
-//                         text: response.message ||
-//                             'Your product has been saved successfully.',
-//                         confirmButtonText: 'OK'
-//                     }).then(function () {
+        complete: function () {
+            button.prop('disabled', false).html(oldText);
+        }
+    });
+});
 
-//                         if (response.redirect) {
-//                             window.location.href = response.redirect;
-//                         } else {
-//                             form.reset();
-//                         }
 
-//                     });
+function calculateListingPrice() {
+    const basePrice = parseFloat(
+        document.getElementById('selling_price').value
+    );
 
-//                 } else {
+    const shippingAllowance = parseFloat(
+        document.getElementById('shipping_allowance').value
+    );
 
-//                     Swal.fire({
-//                         icon: 'error',
-//                         title: 'Unable to Save',
-//                         text: response.message ||
-//                             'Please check the product details and try again.'
-//                     });
+    const finalPriceInput = document.getElementById('final_listing_price');
 
-//                 }
-//             },
+    // Wait until both values are available.
+    if (
+        !Number.isFinite(basePrice) ||
+        basePrice <= 0 ||
+        !Number.isFinite(shippingAllowance) ||
+        shippingAllowance < 0
+    ) {
+        finalPriceInput.value = '';
+        return;
+    }
 
-//             error: function (xhr) {
-//                 let message = 'An unexpected error occurred.';
+    const finalPrice = basePrice + shippingAllowance;
 
-//                 if (xhr.responseJSON) {
-//                     message = xhr.responseJSON.message ||
-//                         (xhr.responseJSON.errors
-//                             ? Object.values(xhr.responseJSON.errors).join('\n')
-//                             : message);
-//                 }
+    finalPriceInput.value = finalPrice.toFixed(2);
 
-//                 Swal.fire({
-//                     icon: 'error',
-//                     title: 'Save Failed',
-//                     text: message
-//                 });
-//             },
+    // Refresh the review if the seller is on step 4.
+    if (typeof currentStep !== 'undefined' && currentStep === 4) {
+        buildReview();
+    }
+}
 
-//             complete: function () {
-//                 $button
-//                     .prop('disabled', false)
-//                     .html(originalText);
-//             }
-//         });
-//     });
+// Recalculate when either value changes.
+document.getElementById('selling_price')
+    .addEventListener('input', calculateListingPrice);
 
-// });
+document.getElementById('shipping_allowance')
+    .addEventListener('input', calculateListingPrice);
 
 </script>
+
+<script>
+$(document).ready(function () {
+
+    let shippingRequest = null;
+
+    function calculateShippingAllowance() {
+        const weight  = parseFloat($('#shipping_weight').val()) || 0;
+        const length  = parseFloat($('#length').val()) || 0;
+        const width   = parseFloat($('#width').val()) || 0;
+        const height  = parseFloat($('#height').val()) || 0;
+
+        
+        if (weight <= 0 || length <= 0 || width <= 0 || height <= 0) {
+            $('#shipping_allowance').val('');
+            $('#final_listing_price').val('');
+
+            $('#shippingAllowanceMessage').text(
+                'Enter product dimensions and weight to calculate shipping.'
+            );
+            return;
+        }
+
+
+        if (shippingRequest) {
+            shippingRequest.abort();
+        }
+
+        $('#shippingAllowanceMessage').text('Calculating shipping...');
+
+        shippingRequest = $.ajax({
+            url: "<?= site_url('seller/products/shipping-allowance') ?>",
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                shipping_weight: weight,
+                length: length,
+                width: width,
+                height: height,
+                '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+            },
+            
+            success: function (response) {
+                if (response.status) {
+                    const allowance = Number(response.shipping_allowance);
+
+                    if (!Number.isFinite(allowance) || allowance < 0) {
+                        $('#shipping_allowance').val('');
+                        $('#final_listing_price').val('');
+
+                        $('#shippingAllowanceMessage').text(
+                            'Invalid shipping allowance received from server.'
+                        );
+                        return;
+                    }
+
+                    $('#shipping_allowance').val(allowance.toFixed(2));
+
+                    // IMPORTANT: Recalculate after receiving the shipping charge.
+                    calculateListingPrice();
+
+                    $('#shippingAllowanceMessage').text(
+                        'Chargeable weight: ' +
+                        response.chargeable_weight_grams +
+                        ' g. Shipping allowance calculated automatically.'
+                    );
+                } else {
+                    $('#shipping_allowance').val('');
+                    $('#final_listing_price').val('');
+
+                    $('#shippingAllowanceMessage').text(
+                        response.message || 'Unable to calculate shipping.'
+                    );
+                }
+            },
+
+            error: function (xhr, status) {
+                if (status !== 'abort') {
+                    $('#shippingAllowanceMessage').text(
+                        'Unable to calculate shipping. Please try again.'
+                    );
+                }
+            }
+        });
+    }
+
+    $('#shipping_weight, #length, #width, #height')
+        .on('input change', calculateShippingAllowance);
+
+});
+</script>
+
+<?= $this->endSection() ?>
+
 
