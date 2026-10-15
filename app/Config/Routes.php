@@ -41,3 +41,8 @@ $routes->post(
     'seller/products/shipping-allowance',
     'SellerProducts::shippingAllowance'
 );
+
+$routes->get(
+    'seller/products/category-attributes/(:num)',
+    'SellerProducts::getCategoryAttributes/$1'
+);

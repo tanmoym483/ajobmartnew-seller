@@ -1,280 +1,5 @@
 
 
-<style>
-:root {
-    --primary: #6c4cff;
-    --primary-light: #f1edff;
-    --border: #e5e7eb;
-    --text: #202438;
-    --muted: #747b8d;
-    --bg: #f6f7fb;
-}
-
-* { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-}
-
-.page { max-width: 1250px; margin: auto; padding: 28px 20px; }
-
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 24px;
-}
-
-h1 { font-size: 27px; margin: 0 0 8px; }
-p { color: var(--muted); line-height: 1.6; }
-
-.btn {
-    border: 0;
-    border-radius: 8px;
-    padding: 12px 18px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.btn-primary { background: var(--primary); color: white; }
-.btn-light { background: white; border: 1px solid var(--border); color: var(--text); }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
-
-.layout {
-    display: grid;
-    grid-template-columns: 245px minmax(0, 1fr);
-    gap: 22px;
-    align-items: start;
-}
-
-.card {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 13px;
-    padding: 25px;
-    margin-bottom: 20px;
-}
-
-.steps { position: sticky; top: 20px; }
-
-.step {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 10px;
-    color: var(--muted);
-    border-radius: 9px;
-    margin-bottom: 7px;
-}
-
-.step.active { background: var(--primary-light); color: var(--primary); }
-.step.done { color: #16834a; }
-
-.step-number {
-    width: 30px;
-    height: 30px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    display: grid;
-    place-items: center;
-    font-size: 13px;
-    font-weight: bold;
-    background: white;
-}
-
-.step.active .step-number {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-}
-
-.step-title { font-weight: 700; font-size: 14px; }
-.step-description { font-size: 12px; margin-top: 5px; }
-
-.section-title { font-size: 19px; margin: 0 0 8px; }
-.section-subtitle { font-size: 13px; margin: 0 0 24px; }
-
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
-}
-
-.field { min-width: 0; }
-.field.full { grid-column: 1 / -1; }
-
-label {
-    display: block;
-    font-weight: 600;
-    font-size: 13px;
-    margin-bottom: 9px;
-}
-
-label span { color: #dc3545; }
-
-input, select, textarea {
-    width: 100%;
-    padding: 12px 13px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: white;
-    color: var(--text);
-    font: inherit;
-    font-size: 14px;
-    outline: none;
-}
-
-input:focus, select:focus, textarea:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px #6c4cff16;
-}
-
-textarea { min-height: 110px; resize: vertical; }
-
-.help { font-size: 12px; color: var(--muted); margin-top: 7px; }
-
-.category-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 13px;
-}
-
-.category-option { position: relative; }
-
-.category-option input {
-    position: absolute;
-    opacity: 0;
-    width: 1px;
-    height: 1px;
-}
-
-.category-box {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 17px 10px;
-    text-align: center;
-    cursor: pointer;
-    height: 100%;
-}
-
-.category-box:hover,
-.category-option input:checked + .category-box {
-    border-color: var(--primary);
-    background: var(--primary-light);
-}
-
-.category-icon { font-size: 28px; display: block; margin-bottom: 10px; }
-.category-name { font-size: 13px; font-weight: 700; }
-
-.upload-box {
-    border: 2px dashed #d5d1e8;
-    border-radius: 11px;
-    padding: 28px 15px;
-    text-align: center;
-    background: #fcfbff;
-}
-
-.upload-box input { max-width: 100%; margin-top: 12px; }
-
-.image-preview {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 18px;
-}
-
-.image-item {
-    position: relative;
-    width: 95px;
-    height: 95px;
-}
-
-.image-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-}
-
-.remove-image {
-    position: absolute;
-    right: -7px;
-    top: -7px;
-    background: #dc3545;
-    color: white;
-    border: 0;
-    border-radius: 50%;
-    width: 23px;
-    height: 23px;
-    cursor: pointer;
-}
-
-.form-footer {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    border-top: 1px solid var(--border);
-    margin-top: 25px;
-    padding-top: 22px;
-}
-
-.footer-right { display: flex; gap: 10px; }
-
-.notice {
-    padding: 14px;
-    background: #fff8e7;
-    color: #785c12;
-    border-radius: 8px;
-    font-size: 13px;
-    line-height: 1.6;
-    margin-bottom: 20px;
-}
-
-.preview-table { width: 100%; border-collapse: collapse; }
-.preview-table td {
-    padding: 13px 8px;
-    border-bottom: 1px solid var(--border);
-    font-size: 14px;
-    overflow-wrap: anywhere;
-}
-.preview-table td:first-child { color: var(--muted); width: 36%; }
-
-.hidden { display: none !important; }
-
-@media (max-width: 850px) {
-    .layout { grid-template-columns: 1fr; }
-    .steps {
-        position: static;
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 5px;
-    }
-    .step { padding: 10px 5px; flex-direction: column; }
-    .step-description { display: none; }
-    .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-@media (max-width: 520px) {
-    .page { padding: 18px 12px; }
-    .page-header { align-items: flex-start; flex-direction: column; }
-    h1 { font-size: 23px; }
-    .card { padding: 17px; }
-    .form-grid { grid-template-columns: 1fr; }
-    .field.full { grid-column: auto; }
-    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .step-title { font-size: 11px; }
-    .category-grid { gap: 9px; }
-    .form-footer { flex-wrap: wrap; }
-}
-</style>
-
 <div class="page">
 
     <header class="page-header">
@@ -337,55 +62,55 @@ textarea { min-height: 110px; resize: vertical; }
                     </p>
 
                     <div class="category-grid">
-                        <label class="category-option">
-                            <input type="radio" name="category"
-                                   value="electronics" required>
-                            <div class="category-box">
-                                <span class="category-icon">📱</span>
-                                <span class="category-name">Electronics</span>
-                            </div>
-                        </label>
+                        <?php
+                        $categoryIcons = [
+                            'electronics' => '📱',
+                            'fashion'     => '👕',
+                            'grocery'     => '🛒',
+                            'home'        => '🏠',
+                            'beauty'      => '🧴',
+                            'computers'   => '💻',
+                            'sports'      => '🏋️',
+                            'furniture'   => '🛋️',
+                            'automotive'  => '🚗',
+                            'books'       => '📚',
+                            'pets'        => '🐾',
+                            'toys'        => '🧸',
+                            'garden'      => '🌱',
+                            'jewelry'     => '💍',
+                            'watches'     => '⌚',
+                            'arts_crafts' => '🎨',
+                            'baby_kids'   => '👶',
+                            'health'      => '💊',
+                            'audio'       => '🎧',
+                            'tools'       => '🛠️',
+                            'other'       => '📦',
+                        ];
+                        ?>
 
-                        <label class="category-option">
-                            <input type="radio" name="category" value="fashion">
-                            <div class="category-box">
-                                <span class="category-icon">👕</span>
-                                <span class="category-name">Fashion</span>
-                            </div>
-                        </label>
+                        <?php foreach ($categories as $category): ?>
+                            <label class="category-option">
+                                <input
+                                    type="radio"
+                                    name="category"
+                                    value="<?= (int) $category['id'] ?>"
+                                    data-slug="<?= esc($category['slug']) ?>"
+                                    required
+                                >
 
-                        <label class="category-option">
-                            <input type="radio" name="category" value="grocery">
-                            <div class="category-box">
-                                <span class="category-icon">🛒</span>
-                                <span class="category-name">Grocery</span>
-                            </div>
-                        </label>
+                                <div class="category-box">
+                                    <span class="category-icon">
+                                        <?= $categoryIcons[$category['slug']] ?? '📦' ?>
+                                    </span>
 
-                        <label class="category-option">
-                            <input type="radio" name="category" value="home">
-                            <div class="category-box">
-                                <span class="category-icon">🏠</span>
-                                <span class="category-name">Home & Kitchen</span>
-                            </div>
-                        </label>
-
-                        <label class="category-option">
-                            <input type="radio" name="category" value="beauty">
-                            <div class="category-box">
-                                <span class="category-icon">🧴</span>
-                                <span class="category-name">Beauty & Care</span>
-                            </div>
-                        </label>
-
-                        <label class="category-option">
-                            <input type="radio" name="category" value="other">
-                            <div class="category-box">
-                                <span class="category-icon">📦</span>
-                                <span class="category-name">Other Products</span>
-                            </div>
-                        </label>
+                                    <span class="category-name">
+                                        <?= esc($category['name']) ?>
+                                    </span>
+                                </div>
+                            </label>
+                        <?php endforeach; ?>
                     </div>
+
 
                     <div class="form-footer">
                         <span></span>
@@ -415,6 +140,46 @@ textarea { min-height: 110px; resize: vertical; }
                             <input id="brand" name="brand"
                                    placeholder="Enter brand name">
                         </div>
+
+                        <!-- Sub-brand -->
+                        <div class="field">
+                            <label for="sub_brand">Sub-brand</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="sub_brand"
+                                name="sub_brand"
+                                placeholder="e.g. Redmi">
+                        </div>
+
+                        <!-- Pack of -->
+                        <div class="field">
+                            <label for="pack_of">Pack of</label>
+                            <input
+                                type="number"
+                                class="form-control"
+                                id="pack_of"
+                                name="pack_of"
+                                min="1"
+                                value="1"
+                                required>
+                        </div>
+
+                        <!-- Minimum order quantity -->
+                        <div class="field">
+                            <label for="min_order_quantity">
+                                Minimum Order Quantity
+                            </label>
+                            <input
+                                type="number"
+                                class="form-control"
+                                id="min_order_quantity"
+                                name="min_order_quantity"
+                                min="1"
+                                value="1"
+                                required>
+                        </div>
+
 
                         <div class="field">
                             <label for="sku">Seller SKU</label>
@@ -448,156 +213,16 @@ textarea { min-height: 110px; resize: vertical; }
                         </div>
 
                         <!-- ELECTRONICS FIELDS -->
-                        <div class="field full category-fields hidden"
-                             data-category="electronics">
-                            <div class="notice">Electronics specifications</div>
-                            <div class="form-grid">
-                                <div class="field">
-                                    <label for="model_number">Model Number</label>
-                                    <input id="model_number" name="model_number">
-                                </div>
-                                <div class="field">
-                                    <label for="warranty">Warranty</label>
-                                    <select id="warranty" name="warranty">
-                                        <option value="">Select warranty</option>
-                                        <option value="no_warranty">No Warranty</option>
-                                        <option value="6_months">6 Months</option>
-                                        <option value="1_year">1 Year</option>
-                                        <option value="2_years">2 Years</option>
-                                    </select>
-                                </div>
-                                <div class="field">
-                                    <label for="color">Color</label>
-                                    <input id="color" name="color">
-                                </div>
-                                <div class="field">
-                                    <label for="storage">Storage / Capacity</label>
-                                    <input id="storage" name="storage"
-                                           placeholder="e.g. 128 GB">
-                                </div>
+                        <!-- DYNAMIC CATEGORY ATTRIBUTES -->
+                        <div class="field full" id="dynamicAttributesWrapper">
+                            <div class="notice">
+                                Category-specific product specifications
                             </div>
-                        </div>
 
-                        <!-- FASHION FIELDS -->
-                        <div class="field full category-fields hidden"
-                             data-category="fashion">
-                            <div class="notice">Fashion specifications</div>
-                            <div class="form-grid">
-                                <div class="field">
-                                    <label for="gender">Target Audience</label>
-                                    <select id="gender" name="gender">
-                                        <option value="">Select</option>
-                                        <option value="men">Men</option>
-                                        <option value="women">Women</option>
-                                        <option value="unisex">Unisex</option>
-                                        <option value="kids">Kids</option>
-                                    </select>
-                                </div>
-                                <div class="field">
-                                    <label for="size">Size</label>
-                                    <input id="size" name="size"
-                                           placeholder="e.g. S, M, L, XL">
-                                </div>
-                                <div class="field">
-                                    <label for="fashion_color">Color</label>
-                                    <input id="fashion_color" name="fashion_color">
-                                </div>
-                                <div class="field">
-                                    <label for="fabric">Fabric / Material</label>
-                                    <input id="fabric" name="fabric">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- GROCERY FIELDS -->
-                        <div class="field full category-fields hidden"
-                             data-category="grocery">
-                            <div class="notice">Grocery specifications</div>
-                            <div class="form-grid">
-                                <div class="field">
-                                    <label for="net_weight">Net Weight / Volume</label>
-                                    <input id="net_weight" name="net_weight"
-                                           placeholder="e.g. 1 kg">
-                                </div>
-                                <div class="field">
-                                    <label for="expiry_date">Expiry Date</label>
-                                    <input type="date" id="expiry_date"
-                                           name="expiry_date">
-                                </div>
-                                <div class="field">
-                                    <label for="manufacturer">Manufacturer</label>
-                                    <input id="manufacturer" name="manufacturer">
-                                </div>
-                                <div class="field">
-                                    <label for="food_type">Product Type</label>
-                                    <select id="food_type" name="food_type">
-                                        <option value="">Select</option>
-                                        <option value="vegetarian">Vegetarian</option>
-                                        <option value="non_vegetarian">Non-vegetarian</option>
-                                        <option value="other">Not applicable</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- HOME FIELDS -->
-                        <div class="field full category-fields hidden"
-                             data-category="home">
-                            <div class="notice">Home & Kitchen specifications</div>
-                            <div class="form-grid">
-                                <div class="field">
-                                    <label for="material">Material</label>
-                                    <input id="material" name="material">
-                                </div>
-                                <div class="field">
-                                    <label for="dimensions">Dimensions</label>
-                                    <input id="dimensions" name="dimensions"
-                                           placeholder="L × W × H">
-                                </div>
-                                <div class="field">
-                                    <label for="item_weight">Item Weight</label>
-                                    <input id="item_weight" name="item_weight"
-                                           placeholder="e.g. 500 g">
-                                </div>
-                                <div class="field">
-                                    <label for="home_type">Product Type</label>
-                                    <input id="home_type" name="home_type">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- BEAUTY FIELDS -->
-                        <div class="field full category-fields hidden"
-                             data-category="beauty">
-                            <div class="notice">Beauty & Personal Care specifications</div>
-                            <div class="form-grid">
-                                <div class="field">
-                                    <label for="skin_type">Skin / Hair Type</label>
-                                    <input id="skin_type" name="skin_type">
-                                </div>
-                                <div class="field">
-                                    <label for="beauty_quantity">Net Quantity</label>
-                                    <input id="beauty_quantity" name="beauty_quantity"
-                                           placeholder="e.g. 100 ml">
-                                </div>
-                                <div class="field">
-                                    <label for="ingredients">Key Ingredients</label>
-                                    <input id="ingredients" name="ingredients">
-                                </div>
-                                <div class="field">
-                                    <label for="beauty_expiry">Expiry Date</label>
-                                    <input type="date" id="beauty_expiry"
-                                           name="beauty_expiry">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="field full category-fields hidden"
-                             data-category="other">
-                            <div class="field">
-                                <label for="other_specs">Additional Specifications</label>
-                                <textarea id="other_specs" name="other_specs"
-                                          placeholder="Enter product specifications"></textarea>
+                            <div class="form-grid" id="dynamicAttributes">
+                                <p class="help">
+                                    Select a category to load its attributes.
+                                </p>
                             </div>
                         </div>
                         
@@ -839,9 +464,17 @@ textarea { min-height: 110px; resize: vertical; }
                     <h3>Product Preview</h3>
                     <p>Review your listing before submitting it.</p>
 
+                    
                     <table class="preview-table">
                         <tbody id="productReview"></tbody>
                     </table>
+
+                    <!-- <div class="field full" style="margin-top:24px;">
+                        <h3>Uploaded Images</h3>
+                        <p class="help">Verify the images before saving your product.</p>
+                        <div id="reviewImages" class="image-preview"></div>
+                    </div> -->
+
 
                     <div class="notice" style="margin-top:20px">
                         Submitting for approval should send the listing to the
@@ -872,14 +505,14 @@ const indicators = [...document.querySelectorAll('[data-step-indicator]')];
 let currentStep = 1;
 let imageFiles = [];
 
-const categoryNames = {
-    electronics: 'Electronics',
-    fashion: 'Fashion',
-    grocery: 'Grocery',
-    home: 'Home & Kitchen',
-    beauty: 'Beauty & Personal Care',
-    other: 'Other Products'
-};
+// const categoryNames = {
+//     electronics: 'Electronics',
+//     fashion: 'Fashion',
+//     grocery: 'Grocery',
+//     home: 'Home & Kitchen',
+//     beauty: 'Beauty & Personal Care',
+//     other: 'Other Products'
+// };
 
 function selectedCategory() {
     return form.querySelector('[name="category"]:checked')?.value || '';
@@ -1050,55 +683,154 @@ function getValue(id) {
     return element.value.trim();
 }
 
+
+function getReviewValue(element) {
+    if (!element || element.disabled) {
+        return '';
+    }
+
+    if (element.tagName === 'SELECT') {
+        return element.selectedIndex >= 0
+            ? element.options[element.selectedIndex].text.trim()
+            : '';
+    }
+
+    return String(element.value || '').trim();
+}
+
+function addReviewRow(tbody, label, value) {
+    const tr = document.createElement('tr');
+    const left = document.createElement('td');
+    const right = document.createElement('td');
+
+    left.textContent = label;
+    right.textContent = value || '—';
+
+    tr.append(left, right);
+    tbody.appendChild(tr);
+}
+
 function buildReview() {
-    const category = selectedCategory();
-    const mrp = Number(getValue('mrp') || 0);
-    const price = Number(getValue('selling_price') || 0);
-    const listprice = Number(getValue('final_listing_price') || 0);
-    const shippingallowance = Number(getValue('shipping_allowance') || 0);
+    const tbody = document.getElementById('productReview');
+    // const reviewImages = document.getElementById('reviewImages');
 
-    const discount = mrp > 0 ? Math.max(0, (mrp - price) / mrp * 100) : 0;
+    tbody.replaceChildren();
+    // reviewImages.replaceChildren();
 
-    const rows = [
-        ['Category', categoryNames[category] || ''],
-        ['Product Name', getValue('product_name')],
-        ['Brand', getValue('brand')],
-        ['Seller SKU', getValue('sku')],
-        ['Description', getValue('description')],
-        ['Condition', getValue('condition')],
-        ['MRP', '₹' + mrp.toFixed(2)],
-        ['Selling Price', '₹' + price.toFixed(2)],
-        ['Listing Price', '₹' + listprice.toFixed(2)],
-        ['Shipping Allowance', '₹' + shippingallowance.toFixed(2)],
-        ['Discount', discount.toFixed(1) + '%'],
-        ['Available Stock', getValue('stock_quantity')],
-        ['Length', getValue('length') + ' cm'],
-        ['Width', getValue('width') + ' cm'],
-        ['Height', getValue('height') + ' cm'],
-        ['Shipping Weight', getValue('shipping_weight') + ' kg'],
-        ['Dispatch Time', getValue('shipping_days') + ' day(s)'],
+    // Read standard form fields.
+    const fields = [
+        ['Category', selectedCategoryName(), ''],
+        ['Product Name', getValue('product_name'), 'product_name'],
+        ['Brand', getValue('brand'), 'brand'],
+        ['Seller SKU', getValue('sku'), 'sku'],
+        ['Description', getValue('description'), 'description'],
+        ['Product Condition', getValue('condition'), 'condition'],
+        ['Listing Status', getValue('product_status') === 'draft'
+            ? 'Save as Draft'
+            : 'Submit for Approval', 'product_status'],
+        ['Country of Origin', getValue('country_of_origin'), 'country_of_origin'],
+        ['HSN Code', getValue('hsn_code'), 'hsn_code'],
+        ['Manufacturer / Importer', getValue('manufacturer_name'), 'manufacturer_name'],
+        ['Key Features', getValue('key_features'), 'key_features'],
+        ['MRP', '₹' + (Number(getValue('mrp')) || 0).toFixed(2), 'mrp'],
+        ['Seller Base Selling Price',
+            '₹' + (Number(getValue('selling_price')) || 0).toFixed(2),
+            'selling_price'],
+        ['Shipping Allowance',
+            '₹' + (Number(getValue('shipping_allowance')) || 0).toFixed(2),
+            'shipping_allowance'],
+        ['Final Listing Price',
+            '₹' + (Number(getValue('final_listing_price')) || 0).toFixed(2),
+            'final_listing_price'],
+        ['Stock Quantity', getValue('stock_quantity'), 'stock_quantity'],
+        ['Low Stock Alert', getValue('low_stock'), 'low_stock'],
+        ['Length', getValue('length') ? getValue('length') + ' cm' : '', 'length'],
+        ['Width', getValue('width') ? getValue('width') + ' cm' : '', 'width'],
+        ['Height', getValue('height') ? getValue('height') + ' cm' : '', 'height'],
         ['Images', imageFiles.length + ' selected'],
-        ['Listing Status',
-            getValue('product_status') === 'draft'
-                ? 'Draft'
-                : 'Submit for Approval']
+        ['Shipping Weight',
+            getValue('shipping_weight')
+                ? getValue('shipping_weight') + ' kg' : '',
+            'shipping_weight'],
+        ['Dispatch Time',
+            getValue('shipping_days')
+                ? getValue('shipping_days') + ' day(s)' : '',
+            'shipping_days'],
+        ['Shipping Method', getValue('shipping_type'), 'shipping_type']
     ];
 
-    const tbody = document.getElementById('productReview');
-    tbody.replaceChildren();
-
-    rows.forEach(([label, value]) => {
-        const tr = document.createElement('tr');
-        const left = document.createElement('td');
-        const right = document.createElement('td');
-
-        left.textContent = label;
-        right.textContent = value || '—';
-
-        tr.append(left, right);
-        tbody.append(tr);
+    fields.forEach(([label, value]) => {
+        addReviewRow(tbody, label, value);
     });
+
+    // Add all database-driven category attributes.
+    const attributeControls = document.querySelectorAll(
+        '#dynamicAttributes input, ' +
+        '#dynamicAttributes select, ' +
+        '#dynamicAttributes textarea'
+    );
+
+    attributeControls.forEach(control => {
+        if (control.disabled || control.type === 'file') {
+            return;
+        }
+
+        const labelElement = control.id
+            ? document.querySelector(
+                '#dynamicAttributes label[for="' + control.id + '"]'
+            )
+            : null;
+
+        const label = labelElement
+            ? labelElement.textContent.trim()
+            : control.name;
+
+        const value = getReviewValue(control);
+
+        addReviewRow(tbody, label, value);
+    });
+
+    // Calculate the discount from MRP and base selling price.
+    const mrp = Number(getValue('mrp')) || 0;
+    const basePrice = Number(getValue('selling_price')) || 0;
+
+    const discount = mrp > 0
+        ? Math.max(0, ((mrp - basePrice) / mrp) * 100)
+        : 0;
+
+    addReviewRow(tbody, 'Discount on Base Price',
+        discount.toFixed(2) + '%');
+
+    // Display uploaded image thumbnails and filenames.
+    // if (imageFiles.length === 0) {
+    //     const message = document.createElement('p');
+    //     message.className = 'help';
+    //     message.textContent = 'No product images selected.';
+    //     // reviewImages.appendChild(message);
+    // } else {
+    //     imageFiles.forEach(file => {
+    //         const wrapper = document.createElement('div');
+    //         wrapper.className = 'image-item';
+
+    //         const img = document.createElement('img');
+    //         const objectUrl = URL.createObjectURL(file);
+
+    //         img.src = objectUrl;
+    //         img.alt = file.name;
+    //         img.title = file.name;
+    //         img.onload = () => URL.revokeObjectURL(objectUrl);
+    //         img.onerror = () => URL.revokeObjectURL(objectUrl);
+
+    //         const filename = document.createElement('div');
+    //         filename.className = 'help';
+    //         filename.textContent = file.name;
+
+    //         wrapper.append(img, filename);
+    //         reviewImages.appendChild(wrapper);
+    //     });
+    // }
 }
+
 
 // Recalculate preview as the seller edits the form.
 form.addEventListener('input', () => {
@@ -1110,26 +842,26 @@ form.addEventListener('change', () => {
 });
 
 // Frontend demo only: connect this to your CI4 POST route.
-form.addEventListener('submit', event => {
-    event.preventDefault();
+// form.addEventListener('submit', event => {
+//     event.preventDefault();
 
-    if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
-        const invalidStep = !validateStep(1) ? 1
-            : !validateStep(2) ? 2 : 3;
-        showStep(invalidStep);
-        return;
-    }
+//     if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
+//         const invalidStep = !validateStep(1) ? 1
+//             : !validateStep(2) ? 2 : 3;
+//         showStep(invalidStep);
+//         return;
+//     }
 
-    if (imageFiles.length === 0) {
-        alert('Please upload at least one product image.');
-        return;
-    }
+//     if (imageFiles.length === 0) {
+//         alert('Please upload at least one product image.');
+//         return;
+//     }
 
-    alert(
-        'Frontend validation successful! Connect this form to your ' +
-        'CodeIgniter 4 controller to save the product.'
-    );
-});
+//     alert(
+//         'Frontend validation successful! Connect this form to your ' +
+//         'CodeIgniter 4 controller to save the product.'
+//     );
+// });
 
 showStep(1);
 
@@ -1336,6 +1068,176 @@ $(document).ready(function () {
     $('#shipping_weight, #length, #width, #height')
         .on('input change', calculateShippingAllowance);
 
+});
+
+
+
+
+const categoryNames = {};
+
+// function selectedCategory() {
+//     return form.querySelector('[name="category"]:checked')?.value || '';
+// }
+
+function selectedCategoryName() {
+    const selected = form.querySelector('[name="category"]:checked');
+
+    return selected
+        ? selected.closest('.category-option')
+            .querySelector('.category-name').textContent.trim()
+        : '';
+}
+
+function createAttributeField(attribute) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'field';
+
+    const label = document.createElement('label');
+    label.htmlFor = 'attribute_' + attribute.id;
+    label.textContent = attribute.label || attribute.attribute_name;
+
+    if (Number(attribute.is_required) === 1) {
+        const required = document.createElement('span');
+        required.textContent = ' *';
+        label.appendChild(required);
+    }
+
+    const fieldName = `attributes[${attribute.id}]`;
+    const fieldId = `attribute_${attribute.id}`;
+
+    const type = String(attribute.input_type || 'text').toLowerCase();
+
+    let control;
+
+    if (type === 'select') {
+        control = document.createElement('select');
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select ' +
+            (attribute.label || attribute.attribute_name);
+
+        control.appendChild(placeholder);
+
+        let options = [];
+
+        try {
+            options = attribute.options_json
+                ? JSON.parse(attribute.options_json)
+                : [];
+        } catch (error) {
+            console.error('Invalid options_json:', attribute.id);
+        }
+
+        if (Array.isArray(options)) {
+            options.forEach(optionValue => {
+                const option = document.createElement('option');
+                option.value = String(optionValue);
+                option.textContent = String(optionValue);
+                control.appendChild(option);
+            });
+        }
+    } else if (type === 'textarea') {
+        control = document.createElement('textarea');
+        control.rows = 3;
+    } else {
+        control = document.createElement('input');
+
+        const allowedTypes = [
+            'text', 'number', 'date', 'email', 'url'
+        ];
+
+        control.type = allowedTypes.includes(type) ? type : 'text';
+
+        if (control.type === 'number') {
+            control.step = 'any';
+        }
+    }
+
+    control.id = fieldId;
+    control.name = fieldName;
+    control.required = Number(attribute.is_required) === 1;
+
+    wrapper.append(label, control);
+
+    return wrapper;
+}
+
+function loadCategoryAttributes(category) {
+    const categoryId = category;
+    const container = document.getElementById('dynamicAttributes');
+
+    container.replaceChildren();
+
+    if (!categoryId) {
+        container.textContent = 'Select a category to load its attributes.';
+        return;
+    }
+
+    const loading = document.createElement('p');
+    loading.className = 'help';
+    loading.textContent = 'Loading category attributes...';
+    container.appendChild(loading);
+
+    // Keep previous requests from overwriting the newest category.
+    const requestId = ++loadCategoryAttributes.requestId;
+
+    $.ajax({
+        url: "<?= site_url('seller/products/category-attributes') ?>/"
+            + encodeURIComponent(categoryId),
+        type: 'GET',
+        dataType: 'json',
+
+        success: function (response) {
+            if (requestId !== loadCategoryAttributes.requestId) {
+                return;
+            }
+
+            container.replaceChildren();
+
+            if (response.status !== 'success') {
+                container.textContent =
+                    response.message || 'Unable to load attributes.';
+                return;
+            }
+
+            const attributes = response.attributes || [];
+
+            if (attributes.length === 0) {
+                container.textContent =
+                    'No additional attributes are configured for this category.';
+                return;
+            }
+
+            attributes.forEach(attribute => {
+                container.appendChild(createAttributeField(attribute));
+            });
+        },
+
+        error: function (xhr) {
+            if (requestId !== loadCategoryAttributes.requestId) {
+                return;
+            }
+
+            container.replaceChildren();
+
+            const message = document.createElement('p');
+            message.className = 'text-danger';
+            message.textContent =
+                xhr.responseJSON?.message ||
+                'Failed to load attributes. Please try again.';
+
+            container.appendChild(message);
+        }
+    });
+}
+
+loadCategoryAttributes.requestId = 0;
+
+form.querySelectorAll('[name="category"]').forEach(radio => {
+    radio.addEventListener('change', function () {
+        loadCategoryAttributes(this.value);
+    });
 });
 </script>
 

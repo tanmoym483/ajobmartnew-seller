@@ -15,9 +15,13 @@ class AjobmartProductModel extends Model
 
     protected $allowedFields = [
         'seller_id',
+        'category_id',
         'category',
         'product_name',
         'brand',
+        'sub_brand',
+        'pack_of',
+        'min_order_quantity',
         'sku',
         'description',
         'product_condition',

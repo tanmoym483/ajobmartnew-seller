@@ -29,8 +29,66 @@ class SellerProducts extends BaseController
             return redirect()->to(site_url('seller'));
         }
 
+        $categories = $this->db->table('ajobmart_categories')
+        ->select('id, name, slug')
+        ->where('status', 'active')
+        ->orderBy('sort_order', 'ASC')
+        ->get()
+        ->getResultArray();
+
         return $this->view('seller/products/add', [
-            'title' => 'Add New Product'
+            'title' => 'Add New Product',
+            'categories' => $categories
+        ]);
+    }
+
+    public function getCategoryAttributes($categoryId = null)
+    {
+        $categoryId = (int) $categoryId;
+
+        if ($categoryId <= 0) {
+            return $this->response
+                ->setStatusCode(400)
+                ->setJSON([
+                    'status'  => 'error',
+                    'message' => 'Please select a valid category.'
+                ]);
+        }
+
+        $db = $this->db;
+
+        $category = $db->table('ajobmart_categories')
+            ->select('id, name')
+            ->where('id', $categoryId)
+            ->where('status', 'active')
+            ->get()
+            ->getRowArray();
+
+        if (!$category) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'status'  => 'error',
+                    'message' => 'Category not found.'
+                ]);
+        }
+
+        $attributes = $db->table('ajobmart_category_attributes')
+            ->select(
+                'id, category_id, attribute_name, label, input_type, ' .
+                'is_required, options_json, sort_order'
+            )
+            ->where('category_id', $categoryId)
+            ->where('status', 'active')
+            ->orderBy('sort_order', 'ASC')
+            ->orderBy('id', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        return $this->response->setJSON([
+            'status'     => 'success',
+            'category'   => $category,
+            'attributes' => $attributes
         ]);
     }
 
@@ -69,19 +127,31 @@ class SellerProducts extends BaseController
             //     ]);
             // }
 
-            $categories = [
-                'electronics', 'fashion', 'grocery',
-                'home', 'beauty', 'other',
-            ];
+            // $categories = [
+            //     'electronics', 'fashion', 'grocery',
+            //     'home', 'beauty', 'other',
+            // ];
 
         // echo '<pre>'; print_r($categories); exit;
 
 
-            $category = (string) $this->request->getPost('category');
+            
+            $categoryId = (int) $this->request->getPost('category');
 
-            if (!in_array($category, $categories, true)) {
+            $categoryRow = $db->table('ajobmart_categories')
+                ->select('id, name, slug')
+                ->where('id', $categoryId)
+                ->where('status', 'active')
+                ->get()
+                ->getRowArray();
+
+            if (!$categoryRow) {
                 throw new RuntimeException('Please select a valid category.');
             }
+
+            $categoryId = (int) $categoryRow['id'];
+            $category = $categoryRow['slug'];
+
 
             $rules = [
                 'product_name'   => 'required|min_length[2]|max_length[200]',
@@ -107,6 +177,19 @@ class SellerProducts extends BaseController
             }
 
             $name = trim((string) $this->request->getPost('product_name'));
+            $subBrand = trim((string) $this->request->getPost('sub_brand'));
+
+            $packOf = (int) ($this->request->getPost('pack_of') ?: 1);
+
+            $minOrderQuantity = (int) (
+                $this->request->getPost('min_order_quantity') ?: 1
+            );
+
+            if ($packOf < 1 || $minOrderQuantity < 1) {
+                throw new \RuntimeException(
+                    'Pack of and minimum order quantity must be at least 1.'
+                );
+            }
             $description = trim(
                 (string) $this->request->getPost('description')
             );
@@ -126,6 +209,100 @@ class SellerProducts extends BaseController
                 throw new RuntimeException('The entered price is too large.');
             }
 
+            
+
+            // Category-specific fields are stored as JSON.
+            
+            $postedAttributes = $this->request->getPost('attributes') ?? [];
+
+            if (!is_array($postedAttributes)) {
+                throw new RuntimeException('Invalid category attribute data.');
+            }
+
+            $categoryAttributeRows = $db->table('ajobmart_category_attributes')
+                ->where('category_id', $categoryId)
+                ->where('status', 'active')
+                ->orderBy('sort_order', 'ASC')
+                ->get()
+                ->getResultArray();
+
+            $allowedAttributes = [];
+            $attributes = [];          // For ajobmart_products.category_attributes
+            $attributeValuesToSave = []; // For ajobmart_product_attribute_values
+
+            foreach ($categoryAttributeRows as $attribute) {
+                $attributeId = (int) $attribute['id'];
+                $allowedAttributes[$attributeId] = $attribute;
+            }
+
+            // Reject submitted IDs that don't belong to this category.
+            foreach ($postedAttributes as $submittedId => $submittedValue) {
+                if (!ctype_digit((string) $submittedId)
+                    || !isset($allowedAttributes[(int) $submittedId])) {
+                    throw new RuntimeException(
+                        'An invalid attribute was submitted for this category.'
+                    );
+                }
+
+                if (!is_scalar($submittedValue) && $submittedValue !== null) {
+                    throw new RuntimeException('Invalid category attribute value.');
+                }
+            }
+
+            foreach ($categoryAttributeRows as $attribute) {
+                $attributeId = (int) $attribute['id'];
+                $attributeName = $attribute['attribute_name'];
+                $label = $attribute['label'] ?: $attributeName;
+
+                $rawValue = $postedAttributes[$attributeId] ?? '';
+                $value = is_scalar($rawValue) ? trim((string) $rawValue) : '';
+
+                // Check required attributes on the server.
+                if ((int) $attribute['is_required'] === 1 && $value === '') {
+                    throw new RuntimeException($label . ' is required.');
+                }
+
+                // Empty optional attributes are not stored.
+                if ($value === '') {
+                    continue;
+                }
+
+                // Validate dropdown values against the database options.
+                if (strtolower($attribute['input_type']) === 'select') {
+                    $options = json_decode(
+                        $attribute['options_json'] ?? '[]',
+                        true
+                    );
+
+                    if (!is_array($options)
+                        || !in_array($value, $options, true)) {
+                        throw new RuntimeException(
+                            'Please select a valid option for ' . $label . '.'
+                        );
+                    }
+                }
+
+                // Validate date fields when the attribute is a date.
+                if (strtolower($attribute['input_type']) === 'date') {
+                    $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+
+                    if (!$date || $date->format('Y-m-d') !== $value) {
+                        throw new RuntimeException(
+                            'Please enter a valid date for ' . $label . '.'
+                        );
+                    }
+                }
+
+                // Legacy JSON format, keyed by attribute name.
+                $attributes[$attributeName] = $value;
+
+                // Normalized table format, keyed by attribute ID.
+                $attributeValuesToSave[] = [
+                    'attribute_id'    => $attributeId,
+                    'attribute_value' => $value,
+                ];
+            }
+
             $images = $this->request->getFileMultiple('product_images');
 
 
@@ -141,57 +318,12 @@ class SellerProducts extends BaseController
                     && $file->getError() !== UPLOAD_ERR_NO_FILE
             ));
 
+            // echo '<pre>'; print_r(count($images)); exit;
 
             if (count($images) < 1 || count($images) > 8) {
                 throw new RuntimeException(
                     'Upload between 1 and 8 product images.'
                 );
-            }
-
-            // Category-specific fields are stored as JSON.
-            $attributeFields = [
-                'electronics' => [
-                    'model_number', 'warranty', 'color', 'storage',
-                ],
-                'fashion' => [
-                    'gender', 'size', 'fashion_color', 'fabric',
-                ],
-                'grocery' => [
-                    'net_weight', 'expiry_date', 'manufacturer', 'food_type',
-                ],
-                'home' => [
-                    'material', 'dimensions', 'item_weight', 'home_type',
-                ],
-                'beauty' => [
-                    'skin_type', 'beauty_quantity',
-                    'ingredients', 'beauty_expiry',
-                ],
-                'other' => ['other_specs'],
-            ];
-
-            $attributes = [];
-
-            foreach ($attributeFields[$category] as $field) {
-                $value = $this->request->getPost($field);
-
-                if (is_string($value) && trim($value) !== '') {
-                    $attributes[$field] = trim($value);
-                }
-            }
-
-            foreach (['expiry_date', 'beauty_expiry'] as $dateField) {
-                if (!isset($attributes[$dateField])) {
-                    continue;
-                }
-
-                $date = \DateTimeImmutable::createFromFormat(
-                    '!Y-m-d',
-                    $attributes[$dateField]
-                );
-
-                if (!$date || $date->format('Y-m-d') !== $attributes[$dateField]) {
-                    throw new RuntimeException('Please enter a valid expiry date.');
-                }
             }
 
             // Validate the seller belongs to the existing sellers table.
@@ -209,11 +341,13 @@ class SellerProducts extends BaseController
 
             // Absolute physical directory used to save images.
             
+            
+            
+            
             $projectRoot = dirname(rtrim(FCPATH, '\\/'));
 
-            $sharedRoot = dirname($projectRoot)
-                . DIRECTORY_SEPARATOR
-                . 'ajobmart-shared';
+            $sharedRoot = 'C:\\xampp\\htdocs\\ajobmart-shared';
+
 
             $year  = date('Y');
             $month = date('m');
@@ -225,18 +359,29 @@ class SellerProducts extends BaseController
                 . DIRECTORY_SEPARATOR . $month
                 . DIRECTORY_SEPARATOR;
 
+            // Relative path stored in the database.
             $relativeDir = 'uploads/products/' . $year . '/' . $month;
 
+            // Create the directory if needed.
             if (!is_dir($absoluteDir)) {
                 if (!mkdir($absoluteDir, 0755, true) && !is_dir($absoluteDir)) {
-                    throw new \RuntimeException(
-                        'Unable to create directory: ' . $absoluteDir
+                    throw new RuntimeException(
+                        'Cannot create shared upload directory: ' . $absoluteDir
                     );
                 }
             }
 
-            // Temporary debugging: check the exact destination.
-            log_message('debug', 'Product image directory: ' . $absoluteDir);
+            if (!is_writable($absoluteDir)) {
+                throw new RuntimeException(
+                    'Shared upload directory is not writable: ' . $absoluteDir
+                );
+            }
+
+            log_message('debug', 'Project root: ' . $projectRoot);
+            log_message('debug', 'Shared root: ' . $sharedRoot);
+            log_message('debug', 'Image destination: ' . $absoluteDir);
+
+
 
 
             $convertedImages = [];
@@ -349,9 +494,16 @@ class SellerProducts extends BaseController
 
             $productId = $this->productModel->insert([
                 'seller_id'          => $sellerId,
+                'category_id'        => $categoryId,
+                'shipping_allowance' => (float) (
+                    $this->request->getPost('shipping_allowance') ?: 0
+                ),
                 'category'           => $category,
                 'product_name'       => $name,
                 'brand'              => trim((string) $this->request->getPost('brand')),
+                'sub_brand'          => $subBrand !== '' ? $subBrand : null,
+                'pack_of'            => $packOf,
+                'min_order_quantity' => $minOrderQuantity,
                 'sku'                => trim((string) $this->request->getPost('sku')),
                 'description'        => $description,
                 'product_condition'  => $this->request->getPost('condition'),
@@ -386,6 +538,34 @@ class SellerProducts extends BaseController
             if (!$productId) {
                 throw new RuntimeException('Unable to save product details.');
             }
+
+            
+            if (!empty($attributeValuesToSave)) {
+                $now = date('Y-m-d H:i:s');
+
+                $attributeInsertRows = [];
+
+                foreach ($attributeValuesToSave as $attributeValue) {
+                    $attributeInsertRows[] = [
+                        'product_id'     => (int) $productId,
+                        'attribute_id'   => (int) $attributeValue['attribute_id'],
+                        'attribute_value'=> $attributeValue['attribute_value'],
+                        'created_at'     => $now,
+                        'updated_at'     => $now,
+                    ];
+                }
+
+                $attributeInsert = $db->table(
+                    'ajobmart_product_attribute_values'
+                )->insertBatch($attributeInsertRows);
+
+                if ($attributeInsert === false) {
+                    throw new RuntimeException(
+                        'Unable to save category-specific product attributes.'
+                    );
+                }
+            }
+
 
             foreach ($convertedImages as $imageData) {
                 $imageData['product_id'] = $productId;
