@@ -140,6 +140,72 @@
     .hero h1{font-size:36px}
     section{padding:52px 0}
   }
+
+#ajobmart-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+#ajobmart-splash.hide {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.splash-content {
+    text-align: center;
+    animation: splashAppear 0.7s ease;
+}
+
+.splash-logo {
+    width: 110px;
+    height: 110px;
+    object-fit: contain;
+    border-radius: 20px;
+}
+
+.splash-content h1 {
+    margin: 15px 0 5px;
+    font-size: 32px;
+    font-weight: 800;
+    color: #ed6b23;
+}
+
+.splash-content p {
+    color: #666;
+    font-size: 14px;
+}
+
+.splash-loader {
+    width: 35px;
+    height: 35px;
+    margin: 22px auto 0;
+    border: 4px solid #f3d9ca;
+    border-top-color: #ed6b23;
+    border-radius: 50%;
+    animation: splashSpin 0.8s linear infinite;
+}
+
+@keyframes splashSpin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes splashAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
 </style>
 
 
@@ -156,7 +222,20 @@
 
 
 
+<!-- Ajobmart Splash Screen -->
+<div id="ajobmart-splash">
+    <div class="splash-content">
+        <img
+            src="<?= base_url('public/assets/favicon/android-chrome-512x512.png') ?>"
+            alt="Ajobmart Logo"
+            class="splash-logo"
+        >
+        <h1>Ajobmart</h1>
+        <p>Your shopping destination</p>
 
+        <div class="splash-loader"></div>
+    </div>
+</div>
 
 <!-- Email Verification Modal -->
 <div class="modal fade"
@@ -430,6 +509,23 @@ $(document).ready(function () {
 
 });
 
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const splash = document.getElementById('ajobmart-splash');
+
+    if (!splash) return;
+
+    // Show the splash screen for at least 1.5 seconds.
+    setTimeout(function () {
+        splash.classList.add('hide');
+
+        setTimeout(function () {
+            splash.remove();
+        }, 450);
+    }, 1500);
+});
 </script>
 
 
