@@ -1,4 +1,536 @@
+<style>
 
+    
+
+
+/* Prevent the product form and gallery from expanding beyond their parent */
+.layout,
+.layout > main,
+#productForm,
+#productForm .product-step,
+#productForm .field {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+#productForm .product-step {
+    overflow: visible;
+}
+
+#imagePreview {
+    justify-content: start;
+}
+
+
+/* Product image gallery */
+#imagePreview {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 172px));
+    gap: 24px 16px;
+    align-items: start;
+    justify-content: start;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 16px;
+    overflow: visible;
+    box-sizing: border-box;
+}
+
+/* Each image card */
+#imagePreview > .image-item,
+#imagePreview > .image-add-tile {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    max-width: 172px;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+#imagePreview > .image-item {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* Image thumbnail */
+#imagePreview > .image-item > img {
+    display: block;
+    width: 100%;
+    height: 172px;
+    padding: 8px;
+    object-fit: contain;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+/* Remove button */
+#imagePreview .remove-image {
+    position: absolute;
+    top: -9px;
+    right: -9px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #e93343;
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+/* Primary image selection */
+#imagePreview .primary-image-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    margin-top: 10px;
+    text-align: center;
+}
+
+#imagePreview .primary-image-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+}
+
+#imagePreview .primary-image-option span {
+    color: #ef3340;
+    font-size: 14px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* Filename */
+#imagePreview .image-filename {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    margin-top: 10px;
+    color: #111827;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* Add image tile */
+#imagePreview > .image-add-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    padding: 12px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #fff;
+    color: #475569;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#imagePreview .image-icon-wrap {
+    position: relative;
+    display: block;
+    width: 80%;
+    max-width: 100px;
+    aspect-ratio: 88 / 70;
+    height: auto;
+}
+
+#imagePreview .image-icon-wrap svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+#imagePreview .image-plus {
+    position: absolute;
+    right: -7px;
+    bottom: -7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #fff;
+    font-size: 24px;
+    line-height: 1;
+}
+
+/* Tablet */
+@media (max-width: 1100px) {
+    #imagePreview {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 24px 16px;
+    }
+
+    #imagePreview > .image-item,
+    #imagePreview > .image-add-tile {
+        max-width: none;
+    }
+
+    #imagePreview > .image-item > img {
+        height: auto;
+        aspect-ratio: 1 / 1;
+    }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+    #imagePreview {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px 12px;
+    }
+
+    #imagePreview > .image-item > img {
+        height: auto;
+        aspect-ratio: 1 / 1;
+        padding: 5px;
+    }
+
+    #imagePreview .image-filename {
+        font-size: 12px;
+    }
+
+    #imagePreview .remove-image {
+        width: 26px;
+        height: 26px;
+        font-size: 19px;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 420px) {
+    #imagePreview {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px 14px;
+    }
+}
+
+
+
+
+/* ===== FIX PRODUCT IMAGE GALLERY OVERLAP ===== */
+
+#productForm #imagePreview {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    column-gap: 16px !important;
+    row-gap: 28px !important;
+    align-items: start !important;
+    justify-content: start !important;
+
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    margin: 16px 0 28px !important;
+    padding: 0 !important;
+
+    overflow: visible !important;
+    clear: both !important;
+    box-sizing: border-box !important;
+}
+
+/* Each image and add-image tile */
+#productForm #imagePreview > .image-item,
+#productForm #imagePreview > .image-add-tile {
+    position: relative !important;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    float: none !important;
+    flex: none !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 0;
+    box-sizing: border-box !important;
+}
+
+/* Image thumbnail */
+#productForm #imagePreview > .image-item > img {
+    display: block !important;
+    position: static !important;
+
+    width: 100% !important;
+    height: 172px !important;
+    min-height: 172px !important;
+    max-height: 172px !important;
+
+    object-fit: contain !important;
+    padding: 8px !important;
+
+    border: 1px solid #dee2e6 !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+
+    box-sizing: border-box !important;
+}
+
+/* Delete button */
+#productForm #imagePreview .remove-image {
+    position: absolute !important;
+    top: -10px !important;
+    right: -8px !important;
+    z-index: 10 !important;
+
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+}
+
+/* Primary selector */
+#productForm #imagePreview .primary-image-option {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+
+    margin: 10px 0 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+}
+
+/* Filename */
+#productForm #imagePreview .image-filename {
+    display: block !important;
+    position: static !important;
+
+    width: 100% !important;
+    height: auto !important;
+    min-width: 0 !important;
+
+    margin: 12px 0 0 !important;
+    padding: 0 !important;
+
+    text-align: center !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+}
+
+/* Add-image tile */
+#productForm #imagePreview > .image-add-tile {
+    aspect-ratio: 1 / 1 !important;
+    min-height: 172px !important;
+    padding: 12px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1px dashed #cbd5e1 !important;
+    border-radius: 12px !important;
+}
+
+/* Keep Product Preview below the complete gallery */
+#productForm .product-step[data-step="4"] > .mt-4 {
+    display: flow-root !important;
+    clear: both !important;
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    margin-top: 28px !important;
+}
+
+/* Tablet */
+@media (max-width: 1000px) {
+    #productForm #imagePreview {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+}
+
+/* Mobile */
+@media (max-width: 650px) {
+    #productForm #imagePreview {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 26px 12px !important;
+    }
+
+    #productForm #imagePreview > .image-item > img {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        aspect-ratio: 1 / 1;
+    }
+}
+
+@media (max-width: 400px) {
+    #productForm #imagePreview {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+
+ 
+ 
+#productForm #imageGallery {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 22px 16px;
+    align-items: start;
+    width: 100%;
+    min-width: 0;
+    margin-top: 16px;
+}
+
+#productForm #imagePreview {
+    display: contents !important;
+}
+
+#productForm #imageGallery .image-item,
+#productForm #imageGallery .image-add-tile {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    box-sizing: border-box;
+}
+
+#productForm #imageGallery .image-item {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+}
+
+#productForm #imageGallery .image-thumb {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    padding: 7px;
+    object-fit: contain;
+    background: #fff;
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+#productForm #imageGallery .image-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+#productForm #imageGallery .image-action-btn {
+    min-width: 0;
+    padding: 7px 4px;
+    border: 1px solid #dbe2ea;
+    border-radius: 7px;
+    background: #fff;
+    color: #334155;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+#productForm #imageGallery .image-action-btn:hover {
+    background: #f1f5f9;
+}
+
+#productForm #imageGallery .image-action-btn.danger {
+    color: #dc3545;
+    border-color: #f3c2c7;
+}
+
+#productForm #imageGallery .image-item.is-primary-image {
+    outline: 2px solid #198754;
+    outline-offset: 3px;
+    border-radius: 12px;
+}
+
+#productForm #imageGallery .primary-badge {
+    display: inline-block;
+    align-self: center;
+    padding: 4px 9px;
+    border-radius: 20px;
+    background: #198754;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+#productForm #imageGallery .image-filename {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-align: center;
+    font-size: 12px;
+    color: #475569;
+}
+
+#productForm #imageGallery .image-add-tile {
+    min-height: 120px;
+    aspect-ratio: 1 / 1;
+    padding: 12px;
+    border: 1px dashed #94a3b8;
+    border-radius: 12px;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+@media (max-width: 1000px) {
+    #productForm #imageGallery {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    #productForm #imageGallery {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    #productForm #imageGallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+
+</style>
 
 <div class="page">
 
@@ -7,17 +539,21 @@
             <h1>Add New Product</h1>
             <p>Create a product listing for your Ajobmart store.</p>
         </div>
-        <button type="button" class="btn btn-light"
+        <!-- <button type="button" class="btn btn-light"
                 onclick="window.location.href='../dashboard'">
             ← Back to Dashboard
-        </button>
+        </button> -->
     </header>
 
     <div class="layout">
 
         <!-- LEFT STEP NAVIGATION -->
         <aside class="card steps">
-            <div class="step active" data-step-indicator="1">
+            <div class="step active"
+                data-step-indicator="1"
+                role="button"
+                tabindex="0"
+                aria-label="Go to Category step">
                 <div class="step-number">1</div>
                 <div>
                     <div class="step-title">Category</div>
@@ -54,6 +590,8 @@
         <main>
             <form id="productForm" enctype="multipart/form-data">
 
+            <input type="hidden" name="product_id" id="product_id" value="">
+            <input type="hidden" name="save_mode" id="save_mode" value="draft">
                 <!-- STEP 1 -->
                 <section class="card product-step" data-step="1">
                     <h2 class="section-title">Choose a Category</h2>
@@ -92,6 +630,7 @@
                             <label class="category-option">
                                 <input
                                     type="radio"
+                                    id="category_<?= (int) $category['id'] ?>"
                                     name="category"
                                     value="<?= (int) $category['id'] ?>"
                                     data-slug="<?= esc($category['slug']) ?>"
@@ -128,7 +667,69 @@
 
                     <div class="form-grid">
 
-                        <div class="field full">
+                    <div class="field full mt-4" id="subcategoryWrapper" hidden>
+                        <label for="subcategory_id">
+                            Select Subcategory <span>*</span>
+                        </label>
+
+                        <select
+                            id="subcategory_id"
+                            name="subcategory_id"
+                            disabled
+                        >
+                            <option value="">Select a subcategory</option>
+                        </select>
+
+                        <div class="help" id="subcategoryMessage">
+                            Choose a category first.
+                        </div>
+                    </div>
+                    
+                    
+                    <div class="field full" id="productTypeWrapper" hidden>
+                        <label for="product_type_id">
+                            Select Product Type <span>*</span>
+                        </label>
+
+                        <select
+                            id="product_type_id"
+                            name="product_type_id"
+                            disabled
+                        >
+                            <option value="">Select a subcategory first</option>
+                        </select>
+
+                        <div class="help" id="productTypeMessage">
+                            Choose a subcategory to load product types.
+                        </div>
+                    </div>
+
+
+                    
+                    <div class="field">
+                        <label for="sku">Seller SKU <span>*</span></label>
+
+                        <input
+                            type="text"
+                            id="sku"
+                            name="sku"
+                            placeholder="e.g. AJ-SKU-001"
+                            required
+                            pattern="[^\s]+"
+                            maxlength="100"
+                            autocomplete="off"
+                            oninput="this.value = this.value.replace(/\s/g, '')"
+                        >
+
+                        <div class="help">Your unique product identification code.</div>
+
+                        <small id="skuValidationMessage"
+                            style="display:block;margin-top:6px;"
+                            aria-live="polite"></small>
+                    </div>
+
+
+                        <div class="field">
                             <label for="product_name">Product Name <span>*</span></label>
                             <input id="product_name" name="product_name"
                                    required maxlength="200"
@@ -136,9 +737,9 @@
                         </div>
 
                         <div class="field">
-                            <label for="brand">Brand</label>
+                            <label for="brand">Brand <span>*</span></label>
                             <input id="brand" name="brand"
-                                   placeholder="Enter brand name">
+                                   placeholder="Enter brand name" required>
                         </div>
 
                         <!-- Sub-brand -->
@@ -146,7 +747,6 @@
                             <label for="sub_brand">Sub-brand</label>
                             <input
                                 type="text"
-                                class="form-control"
                                 id="sub_brand"
                                 name="sub_brand"
                                 placeholder="e.g. Redmi">
@@ -157,7 +757,6 @@
                             <label for="pack_of">Pack of</label>
                             <input
                                 type="number"
-                                class="form-control"
                                 id="pack_of"
                                 name="pack_of"
                                 min="1"
@@ -172,7 +771,6 @@
                             </label>
                             <input
                                 type="number"
-                                class="form-control"
                                 id="min_order_quantity"
                                 name="min_order_quantity"
                                 min="1"
@@ -181,12 +779,7 @@
                         </div>
 
 
-                        <div class="field">
-                            <label for="sku">Seller SKU</label>
-                            <input id="sku" name="sku"
-                                   placeholder="e.g. AJ-SKU-001">
-                            <div class="help">Your own product identification code.</div>
-                        </div>
+                        
 
                         <div class="field full">
                             <label for="description">Product Description <span>*</span></label>
@@ -205,11 +798,15 @@
                         </div>
 
                         <div class="field">
-                            <label for="product_status">Listing Status</label>
-                            <select id="product_status" name="product_status">
-                                <option value="draft">Save as Draft</option>
-                                <option value="pending">Submit for Approval</option>
+                            <label for="product_status">Listing Status <span>*</span></label>
+                            <select id="product_status" name="product_status" required>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
                             </select>
+                            <div class="help">
+                                Active products can be listed for sale after any required approval.
+                                Inactive products should remain unpublished.
+                            </div>
                         </div>
 
                         <!-- ELECTRONICS FIELDS -->
@@ -238,13 +835,30 @@
                         </div>
 
                         <!-- HSN code -->
-                        <div class="field">
-                            <label for="hsn_code">HSN Code</label>
+                        <div class="field position-relative">
+                            <label for="hsn_code">HSN Code <span>*</span></label>
+
                             <input type="text"
                                 id="hsn_code"
                                 name="hsn_code"
-                                maxlength="20"
-                                placeholder="Enter applicable HSN code">
+                                maxlength="8"
+                                placeholder="HSN code"
+                                autocomplete="off"
+                                required>
+
+                            <div id="ajHsnResults"
+                                class="list-group position-absolute w-100 shadow-sm"
+                                style="display:none; z-index:1050;">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="gstvalue">Gst Vlue (Get From HSN)<span>*</span></label>
+                            <input type="number"
+                                id="gst_value"
+                                name="gst_value"
+                                maxlength="3"
+                                placeholder="Enter Gst Value" required>
                         </div>
 
                         <!-- Manufacturer -->
@@ -257,15 +871,15 @@
                                 placeholder="Enter manufacturer name">
                         </div>
 
-                        <!-- Model number -->
-                        <!-- <div class="field">
-                            <label for="model_number_general">Model Number</label>
+                        <div class="field">
+                            <label for="packer_name">Packer / Packing</label>
                             <input type="text"
-                                id="model_number_general"
-                                name="model_number_general"
-                                maxlength="100"
-                                placeholder="Enter model number">
-                        </div> -->
+                                id="packer_name"
+                                name="packer_name"
+                                maxlength="200"
+                                placeholder="Enter Packer name">
+                        </div>
+
 
                         <!-- Key features -->
                         <div class="field full">
@@ -285,9 +899,17 @@
                     <div class="form-footer">
                         <button type="button" class="btn btn-light"
                                 onclick="prevStep()">← Back</button>
+
                         <div class="footer-right">
+                            <button type="button" class="btn btn-light"
+                                    onclick="saveProductDraft()">
+                                Save as Draft
+                            </button>
+
                             <button type="button" class="btn btn-primary"
-                                    onclick="nextStep()">Continue →</button>
+                                    onclick="nextStep()">
+                                Continue →
+                            </button>
                         </div>
                     </div>
                 </section>
@@ -322,7 +944,7 @@
                         <div class="field">
                             <label for="low_stock">Low Stock Alert</label>
                             <input type="number" id="low_stock" name="low_stock"
-                                   min="0" value="5">
+                                   min="0" value="5" readonly>
                         </div>
 
                         <div class="field">
@@ -431,8 +1053,18 @@
                     <div class="form-footer">
                         <button type="button" class="btn btn-light"
                                 onclick="prevStep()">← Back</button>
-                        <button type="button" class="btn btn-primary"
-                                onclick="nextStep()">Continue →</button>
+
+                        <div class="footer-right">
+                            <button type="button" class="btn btn-light"
+                                    onclick="saveProductDraft()">
+                                Save as Draft
+                            </button>
+
+                            <button type="button" class="btn btn-primary"
+                                    onclick="nextStep()">
+                                Continue →
+                            </button>
+                        </div>
                     </div>
                 </section>
 
@@ -443,27 +1075,60 @@
                         Upload clear product photos and verify the information.
                     </p>
 
-                    <div class="field">
-                        <label for="product_images">Product Images <span>*</span></label>
-                        <div class="upload-box">
-                            <div style="font-size:32px">📸</div>
-                            <strong>Upload product images</strong>
-                            <p>Choose up to 8 JPG, PNG or WebP images.</p>
-                            <input type="file" id="product_images"
-                                   name="product_images[]" accept="image/jpeg,image/png,image/webp"
-                                   multiple required>
+                    
+                    
+                    
+                    <div class="field mb-4">
+                        <label>Product Images <span>*</span></label>
+
+                        <p class="help">
+                            Upload up to 8 images. JPG, PNG or WebP, maximum 5 MB each.
+                            Images will be converted to WebP when saved.
+                        </p>
+
+                        <div id="imageGallery" class="image-gallery">
+                            <div id="imagePreview" class="image-preview"></div>
+
+                            <button type="button" id="addImagesBtn" class="image-add-tile">
+                                <span class="image-icon-wrap">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 100 80" aria-hidden="true">
+                                        <rect x="8" y="5" width="84" height="68" rx="8"
+                                            fill="#c9f2ff"/>
+                                        <circle cx="29" cy="25" r="9" fill="#ffbd59"
+                                                stroke="#111" stroke-width="4"/>
+                                        <path d="M10 60 L31 39 L48 56 L61 42 L90 69"
+                                            fill="#20b981" stroke="#111" stroke-width="4"
+                                            stroke-linejoin="round"/>
+                                    </svg>
+                                    <span class="image-plus">+</span>
+                                </span>
+                                <span>Add Image</span>
+                            </button>
                         </div>
-                        <div class="help">
-                            Use your own product photos. Maximum 5 MB per image.
-                        </div>
-                        <div class="image-preview" id="imagePreview"></div>
+
+                        <input type="file"
+                            id="product_images"
+                            name="product_images[]"
+                            accept="image/jpeg,image/png,image/webp"
+                            multiple
+                            hidden>
+
+                        <input type="hidden"
+                            name="primary_image_index"
+                            id="primary_image_index"
+                            value="-1">
                     </div>
 
-                    <hr style="border:0;border-top:1px solid var(--border);margin:28px 0">
 
-                    <h3>Product Preview</h3>
-                    <p>Review your listing before submitting it.</p>
 
+
+                    <div class="mt-4">
+                        <hr style="border:0;border-top:1px solid var(--border);margin:28px 0">
+
+                        <h3>Product Preview</h3>
+                        <p>Review your listing before submitting it.</p>
+                    </div>
                     
                     <table class="preview-table">
                         <tbody id="productReview"></tbody>
@@ -485,8 +1150,18 @@
                     <div class="form-footer">
                         <button type="button" class="btn btn-light"
                                 onclick="prevStep()">← Back</button>
-                        <button type="submit" class="btn btn-primary"
-                                id="submitProduct">Save Product</button>
+
+                        <div class="footer-right">
+                            <button type="button" class="btn btn-light"
+                                    onclick="saveProductDraft()">
+                                Save as Draft
+                            </button>
+
+                            <button type="submit" class="btn btn-primary"
+                                    id="submitProduct">
+                                Save & Approve
+                            </button>
+                        </div>
                     </div>
                 </section>
 
@@ -517,6 +1192,93 @@ let imageFiles = [];
 function selectedCategory() {
     return form.querySelector('[name="category"]:checked')?.value || '';
 }
+
+const subcategorySelect = document.getElementById('subcategory_id');
+const subcategoryWrapper = document.getElementById('subcategoryWrapper');
+const subcategoryMessage = document.getElementById('subcategoryMessage');
+
+let subcategoryRequestId = 0;
+
+
+function loadSubcategories(categoryId) {
+    const requestId = ++subcategoryRequestId;
+
+    subcategorySelect.replaceChildren(
+        new Option('Select a subcategory', '')
+    );
+
+    subcategorySelect.disabled = true;
+    subcategorySelect.required = false;
+    subcategoryWrapper.hidden = !categoryId;
+    subcategoryMessage.textContent = 'Loading subcategories...';
+
+    document.getElementById('dynamicAttributes').replaceChildren();
+
+    if (!categoryId) {
+        subcategoryMessage.textContent = 'Choose a category first.';
+        return Promise.resolve([]);
+    }
+
+    return $.ajax({
+        url: "<?= site_url('seller/products/subcategories') ?>/"
+            + encodeURIComponent(categoryId),
+        type: 'GET',
+        dataType: 'json'
+    }).then(function (response) {
+        if (requestId !== subcategoryRequestId) return [];
+
+        if (response.status !== 'success') {
+            throw new Error(
+                response.message || 'Unable to load subcategories.'
+            );
+        }
+
+        const subcategories = response.subcategories || [];
+
+        if (subcategories.length === 0) {
+            subcategoryWrapper.hidden = true;
+            subcategorySelect.required = false;
+            subcategoryMessage.textContent =
+                'No subcategories available.';
+
+            return [];
+        }
+
+        subcategories.forEach(function (subcategory) {
+            subcategorySelect.add(
+                new Option(subcategory.name, subcategory.id)
+            );
+        });
+
+        subcategorySelect.disabled = false;
+        subcategorySelect.required = true;
+        subcategoryMessage.textContent =
+            'Select a subcategory to load its attributes.';
+
+        return subcategories;
+    }).catch(function (error) {
+        if (requestId === subcategoryRequestId) {
+            subcategoryMessage.textContent =
+                error.responseJSON?.message ||
+                error.message ||
+                'Failed to load subcategories.';
+        }
+
+        throw error;
+    });
+}
+
+
+form.querySelectorAll('[name="category"]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+        loadSubcategories(this.value);
+    });
+});
+
+subcategorySelect.addEventListener('change', function () {
+    loadProductTypes(this.value);
+    loadCategoryAttributes(selectedCategory(), this.value);
+});
 
 function showStep(number) {
     currentStep = number;
@@ -587,14 +1349,77 @@ function validateStep(number) {
     return true;
 }
 
-function nextStep() {
-    if (!validateStep(currentStep)) return;
-    if (currentStep < 4) showStep(currentStep + 1);
+async function nextStep() {
+    if (!validateStep(currentStep)) {
+        return;
+    }
+
+    // Save current progress before navigating forward.
+    // const saved = await saveProductDraft(true);
+
+    if (currentStep < 4) {
+        showStep(currentStep + 1);
+    }
 }
+
+
 
 function prevStep() {
     if (currentStep > 1) showStep(currentStep - 1);
 }
+
+
+/**
+ * Navigate to a clicked step.
+ * Every preceding step must pass validation first.
+ */
+function navigateToStep(targetStep) {
+    targetStep = Number(targetStep);
+
+    if (targetStep < 1 || targetStep > 4) {
+        return;
+    }
+
+    // Going backward or staying on the current step
+    // does not require validating later steps.
+    if (targetStep <= currentStep) {
+        showStep(targetStep);
+        return;
+    }
+
+    // Validate each preceding step in sequence.
+    for (let stepNumber = 1; stepNumber < targetStep; stepNumber++) {
+
+        // Reveal the section before browser validation,
+        // so invalid fields are visible and focusable.
+        showStep(stepNumber);
+
+        if (!validateStep(stepNumber)) {
+            // Keep the seller on the first incomplete step.
+            showStep(stepNumber);
+            return;
+        }
+    }
+
+    // All preceding steps are valid.
+    showStep(targetStep);
+}
+
+// Click navigation
+indicators.forEach(function (indicator) {
+    indicator.addEventListener('click', function () {
+        navigateToStep(this.dataset.stepIndicator);
+    });
+
+    // Keyboard accessibility: Enter or Space
+    indicator.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            navigateToStep(this.dataset.stepIndicator);
+        }
+    });
+});
+ 
 
 // Change fields automatically when the category changes.
 form.querySelectorAll('[name="category"]').forEach(radio => {
@@ -613,69 +1438,420 @@ form.querySelectorAll('[name="category"]').forEach(radio => {
     });
 });
 
-// Show selected images and support removing individual files.
-document.getElementById('product_images').addEventListener('change', event => {
-    const selected = [...event.target.files];
 
-    if (selected.length > 8) {
-        alert('You can upload a maximum of 8 images.');
-        event.target.value = '';
-        imageFiles = [];
-        renderImages();
+
+
+
+const imageInput = document.getElementById('product_images');
+const imagePreview = document.getElementById('imagePreview');
+const addImagesBtn = document.getElementById('addImagesBtn');
+const primaryImageInput = document.getElementById('primary_image_index');
+
+// let imageFiles = [];
+
+// Existing server-side images, supplied when editing a draft.
+// Each item: { id, url, image_name, is_primary }
+let existingImages = [];
+
+// Primary selection:
+// { type: 'existing', id: databaseImageId }
+// or { type: 'new', index: imageFilesIndex }
+let selectedPrimary = null;
+
+// Image IDs marked for removal from the database.
+let removedImageIds = [];
+
+// Index in imageFiles to replace with the next chosen file.
+let replaceImageIndex = null;
+
+function totalGalleryImages() {
+    return existingImages.length + imageFiles.length;
+}
+
+function getPrimaryIndexForUpload() {
+    if (
+        selectedPrimary &&
+        selectedPrimary.type === 'new'
+    ) {
+        return selectedPrimary.index;
+    }
+
+    return -1;
+}
+
+function updatePrimaryHiddenInput() {
+    primaryImageInput.value = String(getPrimaryIndexForUpload());
+}
+
+function selectPrimary(type, value) {
+    selectedPrimary = type === 'existing'
+        ? { type: 'existing', id: Number(value) }
+        : { type: 'new', index: Number(value) };
+
+    updatePrimaryHiddenInput();
+    renderImages();
+}
+
+function createImageAction(text, action, index, type, danger = false) {
+    const button = document.createElement('button');
+
+    button.type = 'button';
+    button.className = 'image-action-btn' +
+        (danger ? ' danger' : '');
+
+    button.textContent = text;
+    button.addEventListener('click', function () {
+        handleImageAction(action, index, type);
+    });
+
+    return button;
+}
+
+function handleImageAction(action, index, type) {
+    if (action === 'primary') {
+        if (type === 'existing') {
+            selectPrimary('existing', existingImages[index].id);
+        } else {
+            selectPrimary('new', index);
+        }
+
         return;
     }
 
-    const invalid = selected.find(file =>
+    if (action === 'replace') {
+        replaceImageIndex = index;
+        imageInput.click();
+        return;
+    }
+
+    if (action === 'remove') {
+        if (type === 'existing') {
+            const removed = existingImages.splice(index, 1)[0];
+
+            if (removed) {
+                removedImageIds.push(Number(removed.id));
+            }
+
+            if (
+                selectedPrimary &&
+                selectedPrimary.type === 'existing' &&
+                Number(selectedPrimary.id) === Number(removed?.id)
+            ) {
+                selectedPrimary = null;
+            }
+        } else {
+            imageFiles.splice(index, 1);
+
+            if (
+                selectedPrimary &&
+                selectedPrimary.type === 'new'
+            ) {
+                if (selectedPrimary.index === index) {
+                    selectedPrimary = null;
+                } else if (selectedPrimary.index > index) {
+                    selectedPrimary.index--;
+                }
+            }
+        }
+
+        ensurePrimaryImage();
+        renderImages();
+    }
+}
+
+function ensurePrimaryImage() {
+    if (
+        selectedPrimary &&
+        selectedPrimary.type === 'existing' &&
+        existingImages.some(
+            image => Number(image.id) === Number(selectedPrimary.id)
+        )
+    ) {
+        return;
+    }
+
+    if (
+        selectedPrimary &&
+        selectedPrimary.type === 'new' &&
+        imageFiles[selectedPrimary.index]
+    ) {
+        return;
+    }
+
+    if (existingImages.length > 0) {
+        const primary = existingImages.find(
+            image => Number(image.is_primary) === 1
+        );
+
+        selectedPrimary = primary
+            ? { type: 'existing', id: Number(primary.id) }
+            : { type: 'existing', id: Number(existingImages[0].id) };
+    } else if (imageFiles.length > 0) {
+        selectedPrimary = { type: 'new', index: 0 };
+    } else {
+        selectedPrimary = null;
+    }
+
+    updatePrimaryHiddenInput();
+}
+
+function renderImages() {
+    imagePreview.replaceChildren();
+
+    existingImages.forEach((image, index) => {
+        const card = document.createElement('div');
+        card.className = 'image-item';
+
+        const isPrimary = selectedPrimary?.type === 'existing' &&
+            Number(selectedPrimary.id) === Number(image.id);
+
+        if (isPrimary) {
+            card.classList.add('is-primary-image');
+        }
+
+        const img = document.createElement('img');
+        img.className = 'image-thumb';
+        img.src = image.url;
+        img.alt = image.image_name || 'Product image';
+
+        card.appendChild(img);
+
+        if (isPrimary) {
+            const badge = document.createElement('span');
+            badge.className = 'primary-badge';
+            badge.textContent = 'Primary image';
+            card.appendChild(badge);
+        }
+
+        const filename = document.createElement('small');
+        filename.className = 'image-filename';
+        filename.textContent = image.image_name || 'Saved image';
+
+        card.appendChild(filename);
+
+        const actions = document.createElement('div');
+        actions.className = 'image-actions';
+
+        actions.append(
+            createImageAction(
+                isPrimary ? '★ Primary' : 'Set Primary',
+                'primary', index, 'existing'
+            ),
+            createImageAction(
+                'Replace',
+                'replace', index, 'existing'
+            ),
+            createImageAction(
+                'Remove',
+                'remove', index, 'existing', true
+            )
+        );
+
+        card.appendChild(actions);
+        imagePreview.appendChild(card);
+    });
+
+    imageFiles.forEach((file, index) => {
+        const card = document.createElement('div');
+        card.className = 'image-item';
+
+        const isPrimary = selectedPrimary?.type === 'new' &&
+            selectedPrimary.index === index;
+
+        if (isPrimary) {
+            card.classList.add('is-primary-image');
+        }
+
+        const img = document.createElement('img');
+        img.className = 'image-thumb';
+
+        const objectUrl = URL.createObjectURL(file);
+        img.src = objectUrl;
+        img.alt = file.name;
+
+        img.onload = () => URL.revokeObjectURL(objectUrl);
+        img.onerror = () => URL.revokeObjectURL(objectUrl);
+
+        card.appendChild(img);
+
+        if (isPrimary) {
+            const badge = document.createElement('span');
+            badge.className = 'primary-badge';
+            badge.textContent = 'Primary image';
+            card.appendChild(badge);
+        }
+
+        const filename = document.createElement('small');
+        filename.className = 'image-filename';
+        filename.textContent = file.name;
+
+        card.appendChild(filename);
+
+        const actions = document.createElement('div');
+        actions.className = 'image-actions';
+
+        actions.append(
+            createImageAction(
+                isPrimary ? '★ Primary' : 'Set Primary',
+                'primary', index, 'new'
+            ),
+            createImageAction(
+                'Replace',
+                'replace', index, 'new'
+            ),
+            createImageAction(
+                'Remove',
+                'remove', index, 'new', true
+            )
+        );
+
+        card.appendChild(actions);
+        imagePreview.appendChild(card);
+    });
+
+    addImagesBtn.hidden = totalGalleryImages() >= 8;
+
+    updatePrimaryHiddenInput();
+}
+
+addImagesBtn.addEventListener('click', function () {
+    if (totalGalleryImages() >= 8) {
+        Swal.fire('Image limit', 'A product can have a maximum of 8 images.', 'warning');
+        return;
+    }
+
+    replaceImageIndex = null;
+    imageInput.click();
+});
+
+imageInput.addEventListener('change', function () {
+    const files = Array.from(this.files || []);
+
+    // Permit choosing the same file again.
+    this.value = '';
+
+    if (!files.length) {
+        replaceImageIndex = null;
+        return;
+    }
+
+    const invalid = files.find(file =>
         !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
         file.size > 5 * 1024 * 1024
     );
 
     if (invalid) {
-        alert('Each image must be JPG, PNG or WebP and no larger than 5 MB.');
-        event.target.value = '';
-        imageFiles = [];
+        replaceImageIndex = null;
+
+        Swal.fire(
+            'Invalid image',
+            'Use JPG, PNG or WebP images no larger than 5 MB each.',
+            'warning'
+        );
+
+        return;
+    }
+
+    if (replaceImageIndex !== null) {
+        const index = replaceImageIndex;
+        replaceImageIndex = null;
+
+        // Replacing an existing saved image means mark the old image
+        // for deletion and add the replacement as a new upload.
+        if (existingImages[index]) {
+            const old = existingImages.splice(index, 1)[0];
+            removedImageIds.push(Number(old.id));
+            imageFiles.push(files[0]);
+
+            if (
+                selectedPrimary?.type === 'existing' &&
+                Number(selectedPrimary.id) === Number(old.id)
+            ) {
+                selectedPrimary = {
+                    type: 'new',
+                    index: imageFiles.length - 1
+                };
+            }
+        } else if (imageFiles[index] !== undefined) {
+            imageFiles[index] = files[0];
+        }
+
+        ensurePrimaryImage();
         renderImages();
         return;
     }
 
-    imageFiles = selected;
+    if (totalGalleryImages() + files.length > 8) {
+        Swal.fire(
+            'Image limit',
+            'A product can have a maximum of 8 images in total.',
+            'warning'
+        );
+
+        return;
+    }
+
+    const startIndex = imageFiles.length;
+    imageFiles.push(...files);
+
+    if (!selectedPrimary && imageFiles.length > 0 && existingImages.length === 0) {
+        selectedPrimary = { type: 'new', index: startIndex };
+    }
+
     renderImages();
 });
 
-function renderImages() {
-    const preview = document.getElementById('imagePreview');
-    preview.replaceChildren();
+// Call this after retrieving a product's images from your controller.
+function loadExistingProductImages(images) {
+    existingImages = Array.isArray(images)
+        ? images.map(image => ({
+            id: Number(image.id),
+            url: String(image.url || ''),
+            image_name: String(image.image_name || ''),
+            is_primary: Number(image.is_primary || 0)
+        }))
+        : [];
 
-    imageFiles.forEach((file, index) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'image-item';
+    removedImageIds = [];
+    imageFiles = [];
+    selectedPrimary = null;
 
-        const img = document.createElement('img');
-        const url = URL.createObjectURL(file);
-        img.src = url;
-        img.alt = file.name;
-        img.onload = () => URL.revokeObjectURL(url);
+    ensurePrimaryImage();
+    renderImages();
+}
 
-        const remove = document.createElement('button');
-        remove.type = 'button';
-        remove.className = 'remove-image';
-        remove.textContent = '×';
-        remove.setAttribute('aria-label', 'Remove ' + file.name);
+// Provide these values when submitting the form.
+function appendImageChanges(formData) {
+    formData.delete('product_images[]');
+    formData.delete('primary_image_index');
+    formData.delete('removed_image_ids[]');
+    formData.delete('primary_existing_image_id');
 
-        remove.addEventListener('click', () => {
-            imageFiles.splice(index, 1);
-            renderImages();
-        });
-
-        wrapper.append(img, remove);
-        preview.append(wrapper);
+    imageFiles.forEach(file => {
+        formData.append('product_images[]', file);
     });
 
-    // Sync the displayed files back to the file input.
-    const transfer = new DataTransfer();
-    imageFiles.forEach(file => transfer.items.add(file));
-    document.getElementById('product_images').files = transfer.files;
+    formData.append(
+        'primary_image_index',
+        String(getPrimaryIndexForUpload())
+    );
+
+    removedImageIds.forEach(id => {
+        formData.append('removed_image_ids[]', String(id));
+    });
+
+    if (selectedPrimary?.type === 'existing') {
+        formData.append(
+            'primary_existing_image_id',
+            String(selectedPrimary.id)
+        );
+    }
 }
+
+renderImages();
+
+
+
 
 function getValue(id) {
     const element = document.getElementById(id);
@@ -725,12 +1901,13 @@ function buildReview() {
         ['Seller SKU', getValue('sku'), 'sku'],
         ['Description', getValue('description'), 'description'],
         ['Product Condition', getValue('condition'), 'condition'],
-        ['Listing Status', getValue('product_status') === 'draft'
-            ? 'Save as Draft'
-            : 'Submit for Approval', 'product_status'],
+        ['Listing Status', getValue('product_status') === 'active'
+        ? 'Active' : 'Inactive','product_status'],
         ['Country of Origin', getValue('country_of_origin'), 'country_of_origin'],
         ['HSN Code', getValue('hsn_code'), 'hsn_code'],
         ['Manufacturer / Importer', getValue('manufacturer_name'), 'manufacturer_name'],
+        ['Packer / Packing', getValue('packer_name'), 'packer_name'],
+
         ['Key Features', getValue('key_features'), 'key_features'],
         ['MRP', '₹' + (Number(getValue('mrp')) || 0).toFixed(2), 'mrp'],
         ['Seller Base Selling Price',
@@ -747,7 +1924,7 @@ function buildReview() {
         ['Length', getValue('length') ? getValue('length') + ' cm' : '', 'length'],
         ['Width', getValue('width') ? getValue('width') + ' cm' : '', 'width'],
         ['Height', getValue('height') ? getValue('height') + ' cm' : '', 'height'],
-        ['Images', imageFiles.length + ' selected'],
+        ['Images', totalGalleryImages() + ' selected'],
         ['Shipping Weight',
             getValue('shipping_weight')
                 ? getValue('shipping_weight') + ' kg' : '',
@@ -877,18 +2054,47 @@ $(document).on('submit', '#productForm', function (e) {
     e.preventDefault();
 
     const form = this;
+    const formData = new FormData(form);
+
     const button = $('#submitProduct');
     const oldText = button.html();
+
+    if (totalGalleryImages() === 0) {
+        Swal.fire(
+            'Images Required',
+            'Please add at least one product image.',
+            'warning'
+        );
+        showStep(4);
+        return;
+    }
+
+    ensurePrimaryImage();
+
+    if (!selectedPrimary) {
+        Swal.fire(
+            'Primary Image Required',
+            'Please select a primary image.',
+            'warning'
+        );
+        showStep(4);
+        return;
+    }
 
     if (!form.checkValidity()) {
         form.reportValidity();
         return;
     }
 
+    appendImageChanges(formData);
+
+    formData.set('save_mode', 'approved');
+
+
     $.ajax({
         url: "<?= site_url('seller/products/store') ?>",
         type: 'POST',
-        data: new FormData(form),
+        data: formData,
         processData: false,
         contentType: false,
         dataType: 'json',
@@ -986,87 +2192,128 @@ $(document).ready(function () {
     let shippingRequest = null;
 
     function calculateShippingAllowance() {
-        const weight  = parseFloat($('#shipping_weight').val()) || 0;
-        const length  = parseFloat($('#length').val()) || 0;
-        const width   = parseFloat($('#width').val()) || 0;
-        const height  = parseFloat($('#height').val()) || 0;
+        const weightPerUnit = parseFloat($('#shipping_weight').val()) || 0;
+        const length = parseFloat($('#length').val()) || 0;
+        const width = parseFloat($('#width').val()) || 0;
+        const height = parseFloat($('#height').val()) || 0;
 
-        
-        if (weight <= 0 || length <= 0 || width <= 0 || height <= 0) {
-            $('#shipping_allowance').val('');
-            $('#final_listing_price').val('');
+        const minOrderQuantity =
+            parseInt($('#min_order_quantity').val(), 10) || 1;
 
-            $('#shippingAllowanceMessage').text(
-                'Enter product dimensions and weight to calculate shipping.'
+        const allowanceInput = $('#shipping_allowance');
+        const message = $('#shippingAllowanceMessage');
+
+        if (shippingRequest) {
+            shippingRequest.abort();
+            shippingRequest = null;
+        }
+
+        allowanceInput.val('');
+        $('#final_listing_price').val('');
+
+        if (
+            weightPerUnit <= 0 ||
+            length <= 0 ||
+            width <= 0 ||
+            height <= 0 ||
+            minOrderQuantity < 1
+        ) {
+            message.text(
+                'Enter valid shipping weight, dimensions and minimum order quantity.'
             );
             return;
         }
 
+        // Total actual weight for the minimum order.
+        const totalWeight = weightPerUnit * minOrderQuantity;
 
-        if (shippingRequest) {
-            shippingRequest.abort();
-        }
-
-        $('#shippingAllowanceMessage').text('Calculating shipping...');
+        message.text('Calculating shipping for ' +
+            minOrderQuantity + ' unit(s)...');
 
         shippingRequest = $.ajax({
             url: "<?= site_url('seller/products/shipping-allowance') ?>",
             type: 'POST',
             dataType: 'json',
+
             data: {
-                shipping_weight: weight,
+                // Total weight, not weight of a single unit.
+                shipping_weight: totalWeight,
+
+                // Additional information for server-side calculations.
+                shipping_weight_per_unit: weightPerUnit,
+                min_order_quantity: minOrderQuantity,
+
                 length: length,
                 width: width,
                 height: height,
+
                 '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
             },
-            
+
             success: function (response) {
-                if (response.status) {
-                    const allowance = Number(response.shipping_allowance);
-
-                    if (!Number.isFinite(allowance) || allowance < 0) {
-                        $('#shipping_allowance').val('');
-                        $('#final_listing_price').val('');
-
-                        $('#shippingAllowanceMessage').text(
-                            'Invalid shipping allowance received from server.'
-                        );
-                        return;
-                    }
-
-                    $('#shipping_allowance').val(allowance.toFixed(2));
-
-                    // IMPORTANT: Recalculate after receiving the shipping charge.
-                    calculateListingPrice();
-
-                    $('#shippingAllowanceMessage').text(
-                        'Chargeable weight: ' +
-                        response.chargeable_weight_grams +
-                        ' g. Shipping allowance calculated automatically.'
+                if (!response.status) {
+                    message.text(
+                        response.message ||
+                        'Unable to calculate shipping.'
                     );
-                } else {
-                    $('#shipping_allowance').val('');
-                    $('#final_listing_price').val('');
-
-                    $('#shippingAllowanceMessage').text(
-                        response.message || 'Unable to calculate shipping.'
-                    );
+                    return;
                 }
+
+                // Expected server response: total shipping charge
+                // for the entire minimum-order shipment.
+                const totalShipping = Number(
+                    response.total_shipping_allowance ??
+                    response.shipping_allowance
+                );
+
+                if (!Number.isFinite(totalShipping) ||
+                    totalShipping < 0) {
+                    message.text(
+                        'Invalid shipping charge received from server.'
+                    );
+                    return;
+                }
+
+                // Divide the total shipment charge across all units.
+                const perUnitAllowance =
+                    totalShipping / minOrderQuantity;
+
+                allowanceInput.val(perUnitAllowance.toFixed(2));
+
+                // Recalculate the final per-unit listing price.
+                calculateListingPrice();
+
+                message.text(
+                    'Total shipment weight: ' +
+                    totalWeight.toFixed(3) + ' kg. ' +
+                    'Total shipping: ₹' + totalShipping.toFixed(2) +
+                    '. Shipping per unit: ₹' +
+                    perUnitAllowance.toFixed(2) + '.' +
+                    (response.chargeable_weight_grams != null
+                        ? ' Chargeable weight: ' +
+                          response.chargeable_weight_grams + ' g.'
+                        : '')
+                );
             },
 
             error: function (xhr, status) {
                 if (status !== 'abort') {
-                    $('#shippingAllowanceMessage').text(
+                    message.text(
                         'Unable to calculate shipping. Please try again.'
                     );
                 }
+            },
+
+            complete: function () {
+                shippingRequest = null;
             }
         });
     }
 
-    $('#shipping_weight, #length, #width, #height')
-        .on('input change', calculateShippingAllowance);
+    $(
+        '#shipping_weight, #length, #width, #height, ' +
+        '#min_order_quantity'
+    ).on('input change', calculateShippingAllowance);
 
 });
 
@@ -1156,6 +2403,8 @@ function createAttributeField(attribute) {
 
     control.id = fieldId;
     control.name = fieldName;
+    control.dataset.attributeName = attribute.attribute_name;
+    // select.dataset.attributeName = attribute.name;
     control.required = Number(attribute.is_required) === 1;
 
     wrapper.append(label, control);
@@ -1163,74 +2412,77 @@ function createAttributeField(attribute) {
     return wrapper;
 }
 
-function loadCategoryAttributes(category) {
-    const categoryId = category;
+let attributeRequestId = 0;
+
+
+function loadCategoryAttributes(categoryId, subcategoryId = '') {
     const container = document.getElementById('dynamicAttributes');
+    const requestId = ++attributeRequestId;
 
     container.replaceChildren();
 
     if (!categoryId) {
-        container.textContent = 'Select a category to load its attributes.';
-        return;
+        container.textContent = 'Select a category first.';
+        return Promise.resolve([]);
     }
 
     const loading = document.createElement('p');
     loading.className = 'help';
-    loading.textContent = 'Loading category attributes...';
+    loading.textContent = 'Loading product attributes...';
     container.appendChild(loading);
 
-    // Keep previous requests from overwriting the newest category.
-    const requestId = ++loadCategoryAttributes.requestId;
-
-    $.ajax({
+    return $.ajax({
         url: "<?= site_url('seller/products/category-attributes') ?>/"
             + encodeURIComponent(categoryId),
         type: 'GET',
-        dataType: 'json',
-
-        success: function (response) {
-            if (requestId !== loadCategoryAttributes.requestId) {
-                return;
-            }
-
-            container.replaceChildren();
-
-            if (response.status !== 'success') {
-                container.textContent =
-                    response.message || 'Unable to load attributes.';
-                return;
-            }
-
-            const attributes = response.attributes || [];
-
-            if (attributes.length === 0) {
-                container.textContent =
-                    'No additional attributes are configured for this category.';
-                return;
-            }
-
-            attributes.forEach(attribute => {
-                container.appendChild(createAttributeField(attribute));
-            });
+        data: {
+            subcategory_id: subcategoryId
         },
+        dataType: 'json'
+    }).then(function (response) {
+        if (requestId !== attributeRequestId) return [];
 
-        error: function (xhr) {
-            if (requestId !== loadCategoryAttributes.requestId) {
-                return;
-            }
+        container.replaceChildren();
 
+        if (response.status !== 'success') {
+            throw new Error(
+                response.message || 'Unable to load attributes.'
+            );
+        }
+
+        const attributes = response.attributes || [];
+
+        if (attributes.length === 0) {
+            container.textContent =
+                'No additional attributes are configured for this selection.';
+
+            return [];
+        }
+
+        attributes.forEach(function (attribute) {
+            container.appendChild(createAttributeField(attribute));
+        });
+
+        // Resolve only after all attribute fields have been created.
+        return attributes;
+    }).catch(function (error) {
+        if (requestId === attributeRequestId) {
             container.replaceChildren();
 
             const message = document.createElement('p');
             message.className = 'text-danger';
             message.textContent =
-                xhr.responseJSON?.message ||
+                error.responseJSON?.message ||
+                error.message ||
                 'Failed to load attributes. Please try again.';
 
             container.appendChild(message);
         }
+
+        throw error;
     });
 }
+ 
 
 loadCategoryAttributes.requestId = 0;
 
@@ -1239,6 +2491,310 @@ form.querySelectorAll('[name="category"]').forEach(radio => {
         loadCategoryAttributes(this.value);
     });
 });
+
+
+
+const productTypeSelect = document.getElementById('product_type_id');
+const productTypeWrapper = document.getElementById('productTypeWrapper');
+const productTypeMessage = document.getElementById('productTypeMessage');
+
+let productTypeRequestId = 0;
+
+
+function loadProductTypes(subcategoryId) {
+    const requestId = ++productTypeRequestId;
+
+    productTypeSelect.replaceChildren(
+        new Option('Loading product types...', '')
+    );
+
+    productTypeSelect.disabled = true;
+    productTypeSelect.required = false;
+    productTypeWrapper.hidden = !subcategoryId;
+
+    if (!subcategoryId) {
+        productTypeMessage.textContent =
+            'Choose a subcategory to load product types.';
+
+        return Promise.resolve([]);
+    }
+
+    productTypeMessage.textContent = 'Loading product types...';
+
+    return $.ajax({
+        url: "<?= site_url('seller/products/product-types') ?>/"
+            + encodeURIComponent(subcategoryId),
+        type: 'GET',
+        dataType: 'json'
+    }).then(function (response) {
+        if (requestId !== productTypeRequestId) return [];
+
+        productTypeSelect.replaceChildren(
+            new Option('Select product type', '')
+        );
+
+        if (response.status !== 'success') {
+            throw new Error(
+                response.message || 'Unable to load product types.'
+            );
+        }
+
+        const productTypes = response.productTypes || [];
+
+        if (productTypes.length === 0) {
+            productTypeWrapper.hidden = true;
+            productTypeSelect.required = false;
+            productTypeSelect.disabled = true;
+            productTypeMessage.textContent =
+                'No product types are configured for this subcategory.';
+
+            return [];
+        }
+
+        productTypes.forEach(function (type) {
+            productTypeSelect.add(
+                new Option(type.name, type.id)
+            );
+        });
+
+        productTypeWrapper.hidden = false;
+        productTypeSelect.disabled = false;
+        productTypeSelect.required = true;
+        productTypeMessage.textContent =
+            'Select the product type for this subcategory.';
+
+        return productTypes;
+    }).catch(function (error) {
+        if (requestId === productTypeRequestId) {
+            productTypeSelect.disabled = true;
+            productTypeSelect.required = false;
+            productTypeMessage.textContent =
+                error.responseJSON?.message ||
+                error.message ||
+                'Failed to load product types.';
+        }
+
+        throw error;
+    });
+}
+
+
+</script>
+
+<script>
+$(function () {
+    const $input = $('#hsn_code');
+    const $results = $('#ajHsnResults');
+    let request = null;
+
+    $input.on('input', function () {
+        const term = $.trim(this.value);
+
+        $results.empty().hide();
+
+        if (term.length < 3) {
+            return;
+        }
+
+        if (request) {
+            request.abort();
+        }
+
+        request = $.ajax({
+            url: <?= json_encode(
+                site_url('seller/hsn/search')
+            ) ?>,
+            type: 'GET',
+            dataType: 'json',
+            data: { q: term },
+
+            success: function (response) {
+                $results.empty();
+
+                if (!response.status ||
+                    !response.results ||
+                    response.results.length === 0) {
+                    return;
+                }
+
+                response.results.forEach(function (item) {
+                    const $option = $('<button>', {
+                        type: 'button',
+                        class: 'list-group-item list-group-item-action'
+                    });
+
+                    $option.append(
+                        $('<strong>').text(item.hsn_code)
+                    );
+
+                    $option.append(
+                        $('<div>')
+                            .addClass('small text-muted')
+                            .text(item.description)
+                    );
+
+                    $option.on('click', function () {
+                        $input.val(item.hsn_code);
+                        $results.empty().hide();
+                    });
+
+                    $results.append($option);
+                });
+
+                $results.show();
+            },
+
+            error: function (xhr, status) {
+                if (status !== 'abort') {
+                    $results.empty().hide();
+                }
+            }
+        });
+    });
+
+    $(document).on('click', function (event) {
+        if (!$(event.target).closest(
+            '#hsn_code, #ajHsnResults'
+        ).length) {
+            $results.hide();
+        }
+    });
+});
+
+
+$(function () {
+    const $sku = $('#sku');
+    const $message = $('#skuValidationMessage');
+    const $submit = $('#submitProduct');
+
+    let skuRequest = null;
+    let skuTimer = null;
+    let skuCheckId = 0;
+
+    function setSkuMessage(message, color) {
+        $message.text(message).css('color', color);
+    }
+
+    function checkSkuAvailability() {
+        const sku = $.trim($sku.val());
+        const productId = $('#product_id').val() || '';
+
+        const requestId = ++skuCheckId;
+
+        if (skuRequest) {
+            skuRequest.abort();
+            skuRequest = null;
+        }
+
+        clearTimeout(skuTimer);
+
+        // Reset validation when SKU is empty.
+        if (!sku) {
+            $sku[0].setCustomValidity('');
+            setSkuMessage('', '');
+            return;
+        }
+
+        // Respect the existing no-spaces rule.
+        if (/\s/.test(sku)) {
+            $sku[0].setCustomValidity(
+                'Spaces are not allowed in SKU.'
+            );
+            setSkuMessage('Spaces are not allowed.', '#dc3545');
+            return;
+        }
+
+        $sku[0].setCustomValidity('');
+        setSkuMessage('Checking SKU availability...', '#64748b');
+
+        skuTimer = setTimeout(function () {
+            skuRequest = $.ajax({
+                url: <?= json_encode(site_url('seller/products/check-sku')) ?>,
+                type: 'GET',
+                dataType: 'json',
+                data: {
+                    sku: sku,
+                    product_id: productId
+                },
+
+                success: function (response) {
+                    if (requestId !== skuCheckId) return;
+
+                    if (response.available) {
+                        $sku[0].setCustomValidity('');
+                        setSkuMessage(
+                            'SKU is available.',
+                            '#198754'
+                        );
+                    } else {
+                        $sku[0].setCustomValidity(
+                            response.message ||
+                            'This SKU is already in use.'
+                        );
+
+                        setSkuMessage(
+                            response.message ||
+                            'This SKU is already in use.',
+                            '#dc3545'
+                        );
+                    }
+                },
+
+                error: function (xhr, status) {
+                    if (
+                        status === 'abort' ||
+                        requestId !== skuCheckId
+                    ) {
+                        return;
+                    }
+
+                    // Fail closed: do not allow saving until
+                    // availability has been confirmed.
+                    $sku[0].setCustomValidity(
+                        'Unable to verify SKU. Please try again.'
+                    );
+
+                    setSkuMessage(
+                        'Unable to verify SKU. Please try again.',
+                        '#dc3545'
+                    );
+                },
+
+                complete: function () {
+                    if (requestId === skuCheckId) {
+                        skuRequest = null;
+                    }
+                }
+            });
+        }, 350);
+    }
+
+    $sku.on('input', checkSkuAvailability);
+
+    // Prevent submission if the availability request is still pending.
+    $('#productForm').on('submit.skuValidation', function (event) {
+        const validityMessage = $sku[0].validationMessage;
+
+        if (
+            !$sku[0].checkValidity() ||
+            validityMessage === 'Unable to verify SKU. Please try again.'
+        ) {
+            event.preventDefault();
+            $sku[0].reportValidity();
+        }
+
+        if (
+            $message.text() === 'Checking SKU availability...'
+        ) {
+            event.preventDefault();
+            setSkuMessage(
+                'Please wait while we check the SKU.',
+                '#dc3545'
+            );
+        }
+    });
+});
+
 </script>
 
 <?= $this->endSection() ?>

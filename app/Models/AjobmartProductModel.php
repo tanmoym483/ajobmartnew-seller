@@ -16,6 +16,8 @@ class AjobmartProductModel extends Model
     protected $allowedFields = [
         'seller_id',
         'category_id',
+        'subcategory_id',
+        'product_type_id',
         'category',
         'product_name',
         'brand',
@@ -39,9 +41,12 @@ class AjobmartProductModel extends Model
         'shipping_days',
         'shipping_type',
         'status',
+        'approval_status',
         'country_of_origin',
         'hsn_code',
+        'gst_value',
         'manufacturer_name',
+        'packer_name',
         'model_number_general',
         'key_features',
     ];

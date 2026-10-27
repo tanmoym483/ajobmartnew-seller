@@ -63,6 +63,31 @@
         .table-responsive {
             min-height: 150px;
         }
+
+        .stock-edit-btn,
+.stock-save-btn,
+.stock-cancel-btn {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stock-edit-btn {
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+.stock-edit-btn:hover {
+    color: #0d6efd;
+    background: #eaf2ff;
+}
+
+.stock-message {
+    font-size: 11px;
+}
     </style>
 
 <body>
@@ -273,13 +298,56 @@
                                     ₹<?= number_format((float)$product['selling_price'], 2) ?>
                                 </td>
 
-                                <td>
-                                    <span class="fw-bold">
-                                        <?= number_format($stock) ?>
-                                    </span>
-                                    <small class="text-secondary d-block">
+                                <td class="stock-cell"
+                                    data-product-id="<?= (int)($product['id'] ?? $product['product_id'] ?? 0) ?>"
+                                    data-original-stock="<?= $stock ?>">
+
+                                    <!-- Display mode -->
+                                    <div class="stock-display d-flex align-items-center gap-2">
+                                        <span class="stock-quantity fw-bold">
+                                            <?= number_format($stock) ?>
+                                        </span>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-bright stock-edit-btn p-1"
+                                                title="Edit stock"
+                                                aria-label="Edit stock">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Edit mode: hidden initially -->
+                                    <div class="stock-edit-mode d-none">
+                                        <div class="d-flex align-items-center gap-1">
+                                            <input type="number"
+                                                class="form-control form-control-sm stock-input"
+                                                value="<?= $stock ?>"
+                                                min="0"
+                                                step="1"
+                                                style="width:75px;"
+                                                aria-label="New stock quantity">
+
+                                            <button type="button"
+                                                    class="btn btn-sm btn-success stock-save-btn p-1"
+                                                    title="Save stock"
+                                                    aria-label="Save stock">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+
+                                            <button type="button"
+                                                    class="btn btn-sm btn-light stock-cancel-btn p-1"
+                                                    title="Cancel editing"
+                                                    aria-label="Cancel editing">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <small class="text-secondary d-block mt-1">
                                         Alert at <?= $threshold ?>
                                     </small>
+
+                                    <small class="stock-message"></small>
                                 </td>
 
                                 <td>
@@ -369,7 +437,164 @@ document.addEventListener('DOMContentLoaded', function () {
     statusFilter.addEventListener('change', filterInventory);
 
 });
-</script>
 
+
+
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    document.querySelectorAll('.stock-cell').forEach(function (cell) {
+
+        const display = cell.querySelector('.stock-display');
+        const editMode = cell.querySelector('.stock-edit-mode');
+        const quantity = cell.querySelector('.stock-quantity');
+        const input = cell.querySelector('.stock-input');
+        const editBtn = cell.querySelector('.stock-edit-btn');
+        const saveBtn = cell.querySelector('.stock-save-btn');
+        const cancelBtn = cell.querySelector('.stock-cancel-btn');
+        const message = cell.querySelector('.stock-message');
+
+        // Open edit mode.
+        editBtn.addEventListener('click', function () {
+            input.value = cell.dataset.originalStock;
+            message.textContent = '';
+            display.classList.add('d-none');
+            editMode.classList.remove('d-none');
+            input.focus();
+            input.select();
+        });
+
+        // Cancel editing.
+        cancelBtn.addEventListener('click', function () {
+            input.value = cell.dataset.originalStock;
+            editMode.classList.add('d-none');
+            display.classList.remove('d-none');
+            message.textContent = '';
+        });
+
+        // Save stock through AJAX.
+        saveBtn.addEventListener('click', async function () {
+
+            let isconfirm = confirm('Do you Want to Update Stock?');
+            if(!isconfirm){
+                return;
+            }
+
+            const newStock = input.value.trim();
+            const productId = cell.dataset.productId;
+            const originalStock = cell.dataset.originalStock;
+
+            if (
+                newStock === '' ||
+                !Number.isSafeInteger(Number(newStock)) ||
+                Number(newStock) < 0
+            ) {
+                message.textContent = 'Enter a valid stock quantity.';
+                message.className = 'stock-message text-danger d-block';
+                return;
+            }
+
+            if (newStock === originalStock) {
+                editMode.classList.add('d-none');
+                display.classList.remove('d-none');
+                return;
+            }
+
+            saveBtn.disabled = true;
+            cancelBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+            try {
+                const payload = {
+                    product_id: Number(productId),
+                    stock_quantity: Number(newStock)
+                };
+
+                payload[<?= json_encode(csrf_token()) ?>] =
+                    <?= json_encode(csrf_hash()) ?>;
+
+                const response = await fetch(
+                    '<?= site_url('seller/inventory/update-stock') ?>',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(
+                        result.message || 'Unable to update stock.'
+                    );
+                }
+
+                // Update displayed quantity only after successful saving.
+                cell.dataset.originalStock = String(Number(newStock));
+                quantity.textContent = Number(newStock).toLocaleString('en-IN');
+
+                editMode.classList.add('d-none');
+                display.classList.remove('d-none');
+
+                message.textContent = 'Stock saved';
+                message.className = 'stock-message text-success d-block';
+
+                // Update the stock status badge in this row.
+                const row = cell.closest('tr');
+                const badge = row.querySelector('td:nth-child(6) .badge');
+
+                const alertText = cell.querySelector('small');
+                const threshold = Number(
+                    alertText.textContent.replace(/\D/g, '') || 0
+                );
+
+                const stock = Number(newStock);
+
+                if (badge) {
+                    if (stock <= 0) {
+                        row.dataset.stock = 'out';
+                        badge.className = 'badge text-bg-danger';
+                        badge.textContent = 'Out of Stock';
+                    } else if (stock <= threshold) {
+                        row.dataset.stock = 'low';
+                        badge.className = 'badge text-bg-warning';
+                        badge.textContent = 'Low Stock';
+                    } else {
+                        row.dataset.stock = 'in';
+                        badge.className = 'badge text-bg-success';
+                        badge.textContent = 'In Stock';
+                    }
+                }
+
+            } catch (error) {
+                message.textContent = error.message;
+                message.className = 'stock-message text-danger d-block';
+            } finally {
+                saveBtn.disabled = false;
+                cancelBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-check-lg"></i>';
+            }
+        });
+
+        // Press Enter to save; Escape to cancel.
+        input.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                saveBtn.click();
+            }
+
+            if (event.key === 'Escape') {
+                cancelBtn.click();
+            }
+        });
+    });
+
+});
+</script>
 
 

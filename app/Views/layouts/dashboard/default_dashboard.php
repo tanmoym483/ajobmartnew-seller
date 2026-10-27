@@ -11,818 +11,32 @@ if (!$session->has('seller_id')) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sell on Ajobmart – Seller Home</title>
-<link
+<title>Ajobmart – Seller Dashboard</title>
+
+<link rel="icon" type="image/png"
+      href="<?= base_url('public/assets/favicon/android-chrome-512x512.png') . '?v=2'; ?>">
+
+      <!-- <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         rel="stylesheet"
-    >
+    > -->
 
     <link
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
         rel="stylesheet"
     >
+      
+<link href="<?= base_url('public/assets/css/bootstrap.min.css') ?>" rel="stylesheet">
 
-    <style>
-.aj-dashboard {
-    display: flex;
-    min-height: 100vh;
-    background: #f5f7fb;
-    color: #17233c;
-}
+    <!-- <link href="<?= base_url('public/assets/css/all.min.css') ?>"
+        rel="stylesheet"
+    > -->
 
-.aj-sidebar {
-    width: 250px;
-    flex-shrink: 0;
-    background: #172554;
-    color: white;
-    padding: 24px 15px;
-    transition: transform .25s ease;
-}
+<link rel="stylesheet" href="<?= base_url('public/assets/css/dashboardstylesheet.css')?>">
 
-.aj-brand {
-    font-size: 25px;
-    font-weight: 800;
-    padding: 0 13px 30px;
-}
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-.aj-brand span {
-    color: #ffcf5c;
-}
-
-.aj-sidebar-label {
-    color: #9eafd2;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 15px 13px 9px;
-}
-
-.aj-nav-link {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    padding: 13px;
-    margin-bottom: 5px;
-    border-radius: 9px;
-    color: #dbe5fa;
-    text-decoration: none;
-    font-size: 14px;
-    transition: .2s;
-}
-
-.aj-nav-link:hover,
-.aj-nav-link.active {
-    color: #fff;
-    background: #2c4a86;
-}
-
-.aj-nav-link i {
-    width: 20px;
-    text-align: center;
-}
-
-.aj-dashboard-main {
-    flex: 1;
-    min-width: 0;
-}
-
-.aj-topbar {
-    min-height: 76px;
-    background: #fff;
-    border-bottom: 1px solid #e8edf5;
-    padding: 15px 28px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-}
-
-.aj-search {
-    max-width: 350px;
-    width: 100%;
-    position: relative;
-}
-
-.aj-search input {
-    width: 100%;
-    background: #f5f7fb;
-    border: 1px solid #e5eaf3;
-    border-radius: 9px;
-    padding: 11px 15px 11px 40px;
-    outline: none;
-}
-
-.aj-search i {
-    position: absolute;
-    top: 14px;
-    left: 14px;
-    color: #8994aa;
-}
-
-.aj-profile {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.aj-avatar {
-    width: 42px;
-    height: 42px;
-    background: #e1eaff;
-    color: #245dcc;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    font-weight: 800;
-}
-
-.aj-content {
-    padding: 30px;
-}
-
-.aj-welcome {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 27px;
-}
-
-.aj-welcome h1 {
-    font-size: 27px;
-    font-weight: 800;
-    margin: 0 0 8px;
-}
-
-.aj-muted {
-    color: #7c879b;
-    font-size: 14px;
-}
-
-.aj-status {
-    display: inline-block;
-    border-radius: 20px;
-    padding: 7px 12px;
-    font-size: 12px;
-    font-weight: 700;
-    background: #fff2cc;
-    color: #946200;
-    text-transform: capitalize;
-}
-
-.aj-status.approved,
-.aj-status.active {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.aj-status.rejected,
-.aj-status.suspended {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.aj-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 18px;
-    margin-bottom: 25px;
-}
-
-.aj-stat-card {
-    background: #fff;
-    border: 1px solid #edf0f6;
-    border-radius: 15px;
-    padding: 22px;
-    box-shadow: 0 4px 15px rgba(20, 40, 80, .025);
-}
-
-.aj-stat-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.aj-stat-icon {
-    width: 46px;
-    height: 46px;
-    display: grid;
-    place-items: center;
-    border-radius: 12px;
-    font-size: 19px;
-}
-
-.aj-blue { background: #e7efff; color: #245dcc; }
-.aj-green { background: #dcfce7; color: #15803d; }
-.aj-purple { background: #f0e7ff; color: #7c3aed; }
-.aj-orange { background: #ffedd5; color: #c2410c; }
-
-.aj-stat-value {
-    font-size: 27px;
-    font-weight: 800;
-    margin-top: 7px;
-    overflow-wrap: anywhere;
-}
-
-.aj-quick-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 15px;
-    margin-bottom: 27px;
-}
-
-.aj-quick-card {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    background: #fff;
-    padding: 19px;
-    border: 1px solid #edf0f6;
-    border-radius: 13px;
-    color: #17233c;
-    text-decoration: none;
-    transition: .2s;
-}
-
-.aj-quick-card:hover {
-    border-color: #b8cdfb;
-    transform: translateY(-2px);
-    color: #245dcc;
-}
-
-.aj-quick-card i {
-    font-size: 21px;
-    color: #245dcc;
-}
-
-.aj-panel {
-    background: #fff;
-    border: 1px solid #edf0f6;
-    border-radius: 15px;
-    overflow: hidden;
-    margin-bottom: 24px;
-}
-
-.aj-panel-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 21px 23px;
-    border-bottom: 1px solid #edf0f6;
-}
-
-.aj-panel-heading h2 {
-    font-size: 17px;
-    font-weight: 800;
-    margin: 0;
-}
-
-.aj-view-all {
-    color: #245dcc;
-    font-size: 13px;
-    text-decoration: none;
-    font-weight: 700;
-}
-
-.aj-table-wrap {
-    overflow-x: auto;
-}
-
-.aj-table {
-    width: 100%;
-    border-collapse: collapse;
-    white-space: nowrap;
-}
-
-.aj-table th {
-    background: #fafbfe;
-    color: #7c879b;
-    text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: .5px;
-    padding: 15px 22px;
-}
-
-.aj-table td {
-    padding: 17px 22px;
-    border-top: 1px solid #f0f2f7;
-    font-size: 13px;
-}
-
-.aj-order-status {
-    display: inline-block;
-    border-radius: 20px;
-    padding: 6px 10px;
-    font-size: 11px;
-    background: #e7efff;
-    color: #245dcc;
-    text-transform: capitalize;
-}
-
-.aj-empty {
-    padding: 45px 20px;
-    text-align: center;
-    color: #8994aa;
-}
-
-.aj-empty i {
-    font-size: 34px;
-    margin-bottom: 12px;
-}
-
-.aj-mobile-menu {
-    display: none;
-    border: 0;
-    background: #edf2ff;
-    color: #245dcc;
-    border-radius: 8px;
-    padding: 9px 12px;
-}
-
-.aj-sidebar-overlay {
-    display: none;
-}
-
-@media (max-width: 1100px) {
-    .aj-stats-grid,
-    .aj-quick-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .aj-content {
-        padding: 22px;
-    }
-}
-
-@media (max-width: 767px) {
-    .aj-sidebar {
-        position: fixed;
-        z-index: 1050;
-        inset: 0 auto 0 0;
-        width: 260px;
-        overflow-y: auto;
-        transform: translateX(-100%);
-    }
-
-    .aj-sidebar.open {
-        transform: translateX(0);
-    }
-
-    .aj-sidebar-overlay.show {
-        display: block;
-        position: fixed;
-        inset: 0;
-        z-index: 1040;
-        background: rgba(15, 23, 42, .5);
-    }
-
-    .aj-mobile-menu {
-        display: inline-block;
-    }
-
-    .aj-topbar {
-        padding: 13px 15px;
-    }
-
-    .aj-search {
-        display: none;
-    }
-
-    .aj-content {
-        padding: 18px 13px;
-    }
-
-    .aj-welcome {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .aj-welcome h1 {
-        font-size: 23px;
-    }
-
-    .aj-stats-grid {
-        gap: 10px;
-    }
-
-    .aj-stat-card {
-        padding: 15px;
-    }
-
-    .aj-stat-value {
-        font-size: 22px;
-    }
-
-    .aj-stat-top {
-        margin-bottom: 13px;
-    }
-
-    .aj-quick-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-
-    .aj-quick-card {
-        padding: 14px 10px;
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .aj-panel-heading {
-        padding: 17px;
-    }
-}
-
-/* Desktop: fixed sidebar */
-.aj-dashboard {
-    display: flex;
-    min-height: 100vh;
-}
-
-.aj-sidebar {
-    width: 250px;
-    flex: 0 0 250px;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-}
-
-.aj-dashboard-main {
-    flex: 1;
-    min-width: 0;
-}
-
-/* Hidden mobile-only controls on desktop */
-.aj-mobile-menu,
-.aj-sidebar-overlay,
-.aj-bottom-nav {
-    display: none;
-}
-
-/* Mobile navigation */
-@media (max-width: 767px) {
-    .aj-sidebar {
-        position: fixed;
-        z-index: 1050;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        width: 270px;
-        height: 100dvh;
-        overflow-y: auto;
-        transform: translateX(-100%);
-        transition: transform .25s ease;
-    }
-
-    .aj-sidebar.open {
-        transform: translateX(0);
-    }
-
-    .aj-sidebar-overlay.show {
-        display: block;
-        position: fixed;
-        inset: 0;
-        z-index: 1040;
-        background: rgba(15, 23, 42, .55);
-    }
-
-    .aj-mobile-menu {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Fixed bottom navigation */
-    .aj-bottom-nav {
-        position: fixed;
-        display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 1030;
-        padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
-        background: #172554;
-        border-top: 1px solid rgba(255,255,255,.12);
-    }
-
-    .aj-bottom-nav a,
-    .aj-bottom-nav button {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-        min-width: 0;
-        border: 0;
-        background: transparent;
-        color: #dbe5fa;
-        text-decoration: none;
-        font-size: 10px;
-        padding: 4px 1px;
-    }
-
-    .aj-bottom-nav i {
-        font-size: 18px;
-    }
-
-    .aj-bottom-nav a.active,
-    .aj-bottom-nav button.active {
-        color: #ffcf5c;
-    }
-
-    /* Prevent page content from being hidden behind bottom nav */
-    .aj-content {
-        padding: 18px 13px calc(95px + env(safe-area-inset-bottom));
-    }
-
-    .aj-topbar {
-        padding: 12px 15px;
-    }
-}
-
-</style>
-
-
-
-<style>
-:root {
-    --primary: #6c4cff;
-    --primary-light: #f1edff;
-    --border: #e5e7eb;
-    --text: #202438;
-    --muted: #747b8d;
-    --bg: #f6f7fb;
-}
-
-* { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-}
-
-.page { max-width: 1250px; margin: auto; padding: 28px 20px; }
-
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 24px;
-}
-
-h1 { font-size: 27px; margin: 0 0 8px; }
-p { color: var(--muted); line-height: 1.6; }
-
-.btn {
-    border: 0;
-    border-radius: 8px;
-    padding: 12px 18px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.btn-primary { background: var(--primary); color: white; }
-.btn-light { background: white; border: 1px solid var(--border); color: var(--text); }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
-
-.layout {
-    display: grid;
-    grid-template-columns: 245px minmax(0, 1fr);
-    gap: 22px;
-    align-items: start;
-}
-
-.card {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 13px;
-    padding: 25px;
-    margin-bottom: 20px;
-}
-
-.steps { position: sticky; top: 20px; }
-
-.step {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 10px;
-    color: var(--muted);
-    border-radius: 9px;
-    margin-bottom: 7px;
-}
-
-.step.active { background: var(--primary-light); color: var(--primary); }
-.step.done { color: #16834a; }
-
-.step-number {
-    width: 30px;
-    height: 30px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    display: grid;
-    place-items: center;
-    font-size: 13px;
-    font-weight: bold;
-    background: white;
-}
-
-.step.active .step-number {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-}
-
-.step-title { font-weight: 700; font-size: 14px; }
-.step-description { font-size: 12px; margin-top: 5px; }
-
-.section-title { font-size: 19px; margin: 0 0 8px; }
-.section-subtitle { font-size: 13px; margin: 0 0 24px; }
-
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
-}
-
-.field { min-width: 0; }
-.field.full { grid-column: 1 / -1; }
-
-label {
-    display: block;
-    font-weight: 600;
-    font-size: 13px;
-    margin-bottom: 9px;
-}
-
-label span { color: #dc3545; }
-
-input, select, textarea {
-    width: 100%;
-    padding: 12px 13px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: white;
-    color: var(--text);
-    font: inherit;
-    font-size: 14px;
-    outline: none;
-}
-
-input:focus, select:focus, textarea:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px #6c4cff16;
-}
-
-textarea { min-height: 110px; resize: vertical; }
-
-.help { font-size: 12px; color: var(--muted); margin-top: 7px; }
-
-.category-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 13px;
-}
-
-.category-option { position: relative; }
-
-.category-option input {
-    position: absolute;
-    opacity: 0;
-    width: 1px;
-    height: 1px;
-}
-
-.category-box {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 17px 10px;
-    text-align: center;
-    cursor: pointer;
-    height: 100%;
-}
-
-.category-box:hover,
-.category-option input:checked + .category-box {
-    border-color: var(--primary);
-    background: var(--primary-light);
-}
-
-.category-icon { font-size: 28px; display: block; margin-bottom: 10px; }
-.category-name { font-size: 13px; font-weight: 700; }
-
-.upload-box {
-    border: 2px dashed #d5d1e8;
-    border-radius: 11px;
-    padding: 28px 15px;
-    text-align: center;
-    background: #fcfbff;
-}
-
-.upload-box input { max-width: 100%; margin-top: 12px; }
-
-.image-preview {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 18px;
-}
-
-.image-item {
-    position: relative;
-    width: 95px;
-    height: 95px;
-}
-
-.image-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-}
-
-.remove-image {
-    position: absolute;
-    right: -7px;
-    top: -7px;
-    background: #dc3545;
-    color: white;
-    border: 0;
-    border-radius: 50%;
-    width: 23px;
-    height: 23px;
-    cursor: pointer;
-}
-
-.form-footer {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    border-top: 1px solid var(--border);
-    margin-top: 25px;
-    padding-top: 22px;
-}
-
-.footer-right { display: flex; gap: 10px; }
-
-.notice {
-    padding: 14px;
-    background: #fff8e7;
-    color: #785c12;
-    border-radius: 8px;
-    font-size: 13px;
-    line-height: 1.6;
-    margin-bottom: 20px;
-}
-
-.preview-table { width: 100%; border-collapse: collapse; }
-.preview-table td {
-    padding: 13px 8px;
-    border-bottom: 1px solid var(--border);
-    font-size: 14px;
-    overflow-wrap: anywhere;
-}
-.preview-table td:first-child { color: var(--muted); width: 36%; }
-
-.hidden { display: none !important; }
-
-@media (max-width: 850px) {
-    .layout { grid-template-columns: 1fr; }
-    .steps {
-        position: static;
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 5px;
-    }
-    .step { padding: 10px 5px; flex-direction: column; }
-    .step-description { display: none; }
-    .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-@media (max-width: 520px) {
-    .page { padding: 18px 12px; }
-    .page-header { align-items: flex-start; flex-direction: column; }
-    h1 { font-size: 23px; }
-    .card { padding: 17px; }
-    .form-grid { grid-template-columns: 1fr; }
-    .field.full { grid-column: auto; }
-    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .step-title { font-size: 11px; }
-    .category-grid { gap: 9px; }
-    .form-footer { flex-wrap: wrap; }
-}
-</style>
 
 </head>
 <body>
@@ -885,6 +99,949 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+
+<script>
+(function ($) {
+    'use strict';
+
+    const listUrl = <?= json_encode(
+        site_url('seller/products/list-data'),
+        JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT
+    ) ?>;
+
+    let allProducts = [];
+    let loading = false;
+    let request = null;
+
+    function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(
+            /[&<>"']/g,
+            function (char) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[char];
+            }
+        );
+    }
+
+    function money(value) {
+        const amount = Number(value);
+        return Number.isFinite(amount)
+            ? '₹' + amount.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })
+            : '—';
+    }
+
+    function statusBadge(status) {
+        const value = String(status || 'unknown').toLowerCase();
+        const known = [
+            'draft', 'pending', 'approved',
+            'active', 'rejected', 'inactive'
+        ];
+        const cls = known.includes(value) ? value : 'other';
+
+        return '<span class="aj-status-badge aj-status-' + cls +
+            '">' + escapeHtml(value.replace(/_/g, ' ')) + '</span>';
+    }
+
+    function stockBadge(product) {
+        const qty = Number(product.stock_quantity || 0);
+        const threshold = Number(product.low_stock || 0);
+
+        if (qty <= 0) {
+            return '<span class="aj-stock-badge aj-stock-out">Out of stock</span>';
+        }
+
+        if (threshold > 0 && qty <= threshold) {
+            return '<span class="aj-stock-badge aj-stock-low">' +
+                qty + ' · Low stock</span>';
+        }
+
+        return '<span class="aj-stock-badge aj-stock-ok">' +
+            qty + ' · In stock</span>';
+    }
+
+    
+
+function imageMarkup(product) {
+    let path = String(
+        product.image_path || ''
+    ).trim();
+
+    if (!path) {
+        return '<div class="aj-product-image d-flex align-items-center ' +
+            'justify-content-center">' +
+            '<i class="fas fa-box text-muted"></i></div>';
+    }
+
+        const base = <?= json_encode(
+            site_url('shared-images'),
+            JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT
+        ) ?>;
+
+        path = base + '/' + path.split('/').map(encodeURIComponent).join('/');
+
+    return '<img class="aj-product-image" src="' +
+        escapeHtml(path) +
+        '" alt="' + escapeHtml(product.product_name || 'Product') +
+        '" loading="lazy" onerror="this.onerror=null;this.style.display=\'none\';">';
+}
+
+
+
+    function renderStats(products) {
+        $('#ajTotalProducts').text(products.length);
+
+        $('#ajLowStock').text(products.filter(function (p) {
+            const qty = Number(p.stock_quantity || 0);
+            const threshold = Number(p.low_stock || 0);
+            return qty > 0 && threshold > 0 && qty <= threshold;
+        }).length);
+
+        $('#ajOutOfStock').text(products.filter(function (p) {
+            return Number(p.stock_quantity || 0) <= 0;
+        }).length);
+    }
+
+    function renderCategoryOptions(products) {
+        const selected = $('#ajCategoryFilter').val() || '';
+        const categories = [...new Set(products.map(function (p) {
+            return String(p.category || '').trim();
+        }).filter(Boolean))].sort();
+
+        let html = '<option value="">All Categories</option>';
+
+        categories.forEach(function (category) {
+            html += '<option value="' + escapeHtml(category) + '">' +
+                escapeHtml(category) + '</option>';
+        });
+
+        $('#ajCategoryFilter').html(html);
+
+        if (categories.includes(selected)) {
+            $('#ajCategoryFilter').val(selected);
+        }
+    }
+
+    
+const editProductUrl = <?= json_encode(site_url('seller/products/add')) ?>;
+
+function renderProducts() {
+    const search = String($('#ajProductSearch').val() || '').toLowerCase().trim();
+    const status = String($('#ajStatusFilter').val() || '').toLowerCase();
+    const category = String($('#ajCategoryFilter').val() || '').toLowerCase();
+
+    const products = allProducts.filter(function (p) {
+        const searchable = [
+            p.product_name, p.sku, p.brand, p.sub_brand, p.category
+        ].join(' ').toLowerCase();
+
+        const approvalStatus = String(p.approval_status || '').toLowerCase();
+        const productStatus = String(p.status || '').toLowerCase();
+
+        // Draft/pending/approved come from approval_status.
+        // Active/inactive come from the product status field.
+        const matchesStatus = !status ||
+            (['draft', 'pending', 'approved', 'rejected'].includes(status)
+                ? approvalStatus === status
+                : productStatus === status);
+
+        return (!search || searchable.includes(search)) &&
+            matchesStatus &&
+            (!category || String(p.category || '').toLowerCase() === category);
+    });
+
+    $('#ajProductCount').text(
+        'Showing ' + products.length + ' of ' + allProducts.length + ' products'
+    );
+
+    if (!products.length) {
+        $('#ajProductTableBody').empty();
+        $('#ajProductEmpty').prop('hidden', false);
+        return;
+    }
+
+    $('#ajProductEmpty').prop('hidden', true);
+
+    let html = '';
+
+    products.forEach(function (p) {
+        const name = p.product_name || 'Unnamed product';
+        const brand = [p.brand, p.sub_brand].filter(Boolean).join(' · ');
+        const mrp = Number(p.mrp || 0);
+        const selling = Number(p.selling_price || 0);
+        const listing = Number(p.listing_price || 0);
+        const price = selling > 0 ? selling : (listing > 0 ? listing : mrp);
+
+        const isDraft =
+            String(p.approval_status || '').toLowerCase() === 'draft';
+
+        let actions = '—';
+
+        if (isDraft && Number(p.id) > 0) {
+            const editUrl = editProductUrl +
+                '?product_id=' + encodeURIComponent(p.id);
+
+            actions =
+                '<a href="' + escapeHtml(editUrl) + '"' +
+                ' class="btn btn-sm btn-outline-primary">' +
+                '<i class="fas fa-edit"></i> Edit Draft' +
+                '</a>';
+        }
+
+        html += '<tr>' +
+            '<td><div class="aj-product-item">' +
+                imageMarkup(p) +
+                '<div><div class="aj-product-name">' +
+                    escapeHtml(name) + '</div>' +
+                    '<div class="aj-product-sub">' +
+                        escapeHtml(brand || p.category || '') + '</div>' +
+                    '<div class="aj-product-sub">ID: ' +
+                        escapeHtml(p.id) + '</div></div>' +
+            '</div></td>' +
+            '<td>' + escapeHtml(p.sku || '—') + '</td>' +
+            '<td>' + escapeHtml(p.category || '—') + '</td>' +
+            '<td><div class="aj-price-main">' + money(price) + '</div>' +
+                (mrp > price
+                    ? '<div class="aj-price-old">' + money(mrp) + '</div>'
+                    : '') +
+            '</td>' +
+            '<td>' + stockBadge(p) + '</td>' +
+            '<td>' + statusBadge(p.status) + '</td>' +
+            '<td>' + escapeHtml(p.created_at || '—') + '</td>' +
+            '<td>' + actions + '</td>' +
+        '</tr>';
+    });
+
+    $('#ajProductTableBody').html(html);
+}
+
+
+    function loadProducts(manual) {
+        if (loading) {
+            if (manual && request) {
+                request.abort();
+            } else {
+                return;
+            }
+        }
+
+        loading = true;
+        $('#ajProductError').prop('hidden', true);
+
+        if (manual) {
+            $('#ajRefreshProducts').prop('disabled', true)
+                .html('<i class="fas fa-spinner fa-spin"></i> Refreshing');
+        }
+
+        request = $.ajax({
+            url: listUrl,
+            type: 'GET',
+            dataType: 'json',
+            cache: false
+        }).done(function (response) {
+            if (!response || response.status !== true ||
+                !Array.isArray(response.products)) {
+                $('#ajProductError').text(
+                    response && response.message
+                        ? response.message
+                        : 'Unexpected server response.'
+                ).prop('hidden', false);
+                return;
+            }
+
+            allProducts = response.products;
+
+            console.log(allProducts);
+
+            renderStats(allProducts);
+            renderCategoryOptions(allProducts);
+            renderProducts();
+
+            $('#ajLastUpdated').text(
+                'Last updated: ' + new Date().toLocaleTimeString()
+            );
+        }).fail(function (xhr, status) {
+            if (status === 'abort') {
+                return;
+            }
+
+            const message = xhr.status === 401
+                ? 'Your seller session has expired. Please log in again.'
+                : 'Unable to load products. Check your connection and try again.';
+
+            $('#ajProductError').text(message).prop('hidden', false);
+        }).always(function () {
+            loading = false;
+            request = null;
+            $('#ajRefreshProducts').prop('disabled', false)
+                .html('<i class="fas fa-sync-alt"></i> Refresh');
+        });
+    }
+
+    $(function () {
+        $('#ajProductSearch, #ajStatusFilter, #ajCategoryFilter')
+            .on('input change', renderProducts);
+
+        $('#ajRefreshProducts').on('click', function () {
+            loadProducts(true);
+        });
+
+        loadProducts(false);
+
+        // Refresh product data without reloading the whole page.
+        window.setInterval(function () {
+            if (!document.hidden) {
+                loadProducts(false);
+            }
+        }, 10000);
+    });
+
+})(jQuery); 
+
+
+
+async function saveProductDraft(showMessage = false) {
+    const form = document.getElementById('productForm');
+    const formData = new FormData(form);
+    appendImageChanges(formData);
+
+    // Validate only visible and enabled fields.
+    const fields = [
+        ...form.querySelectorAll('input, select, textarea')
+    ];
+
+    for (const field of fields) {
+        // Skip disabled fields and hidden inputs.
+        if (field.disabled || field.type === 'hidden') {
+            continue;
+        }
+
+        // Skip fields inside hidden steps.
+        const hiddenStep = field.closest('.product-step.hidden');
+        if (hiddenStep) {
+            continue;
+        }
+
+        // Skip fields inside hidden category-specific sections.
+        const hiddenCategoryField = field.closest('.category-fields.hidden');
+        if (hiddenCategoryField) {
+            continue;
+        }
+
+        // Validate only fields currently visible on screen.
+        if (field.getClientRects().length === 0) {
+            continue;
+        }
+
+        if (!field.checkValidity()) {
+            field.reportValidity();
+            field.focus();
+            return false;
+        }
+    }
+
+    formData.set('save_mode', 'draft');
+
+    try {
+        const response = await $.ajax({
+            url: "<?= site_url('seller/products/store') ?>",
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json'
+        });
+
+        if (response.status === 'success') {
+            // Reuse the same product ID for subsequent draft updates.
+
+            
+
+            if (response.product_id) {
+                $('#product_id').val(response.product_id);
+            }
+
+            if (showMessage) {
+                console.log('Product draft saved successfully.');
+            }
+
+            Swal.fire(
+                'Draft saved',
+                response.message || 'Your product draft was saved successfully.',
+                'success'
+            );
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('product_id', response.product_id);
+
+            window.history.replaceState({}, '', url);
+
+            return true;
+        }
+
+        Swal.fire(
+            'Draft not saved',
+            response.message || 'Unable to save your product draft.',
+            'error'
+        );
+
+        return false;
+
+    } catch (error) {
+        console.error('Draft save error:', error);
+
+        const message =
+            error.responseJSON?.message ||
+            'Unable to save your draft. Please try again.';
+
+        Swal.fire('Error', message, 'error');
+        return false;
+    }
+}
+
+
+function restoreSelectValue(selectElement, savedValue) {
+    if (!selectElement || savedValue == null) {
+        return false;
+    }
+
+    const value = String(savedValue).trim();
+
+    // Find an option whose value exactly matches the saved value.
+    const optionExists = Array.from(selectElement.options).some(
+        option => option.value === value
+    );
+
+    if (!optionExists) {
+        console.warn(
+            'Saved select option not found:',
+            selectElement.id,
+            value
+        );
+        return false;
+    }
+
+    selectElement.value = value;
+
+    // Confirm the value was selected successfully.
+    return selectElement.value === value;
+}
+
+let existingProductImages = [];
+
+function renderExistingProductImages(images) {
+    existingImages = (images || []).map(function (image) {
+        return {
+            id: Number(image.id),
+            url: image.url || '',
+            image_name: image.image_name || 'Product image',
+            is_primary: Number(image.is_primary) === 1
+        };
+    }).filter(function (image) {
+        return image.url !== '';
+    });
+
+    const primaryImage = existingImages.find(
+        image => image.is_primary
+    );
+
+    selectedPrimary = primaryImage
+        ? { type: 'existing', id: primaryImage.id }
+        : (
+            existingImages.length
+                ? { type: 'existing', id: existingImages[0].id }
+                : null
+        );
+
+    removedImageIds = [];
+    imageFiles = [];
+
+    ensurePrimaryImage();
+    renderImages();
+}
+
+async function restoreSavedDraft() {
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('product_id');
+
+    if (!productId) {
+        return;
+    }
+
+    const form = document.querySelector('form');
+
+    if (!form) {
+        console.error('Product form was not found.');
+        return;
+    }
+
+    // --------------------------------------------------
+    // Helper: normalize saved values.
+    // Supports arrays and comma-separated saved values.
+    // --------------------------------------------------
+    function normalizeValues(savedValue) {
+        if (savedValue == null) {
+            return [];
+        }
+
+        if (Array.isArray(savedValue)) {
+            return savedValue.map(String);
+        }
+
+        if (typeof savedValue === 'object') {
+            return Object.values(savedValue).map(String);
+        }
+
+        const value = String(savedValue);
+
+        if (value === '') {
+            return [''];
+        }
+
+        return value.split(',').map(value => value.trim());
+    }
+
+    // --------------------------------------------------
+    // Helper: notify dependent code and selection widgets.
+    // --------------------------------------------------
+    function refreshField(field) {
+        if (
+            window.jQuery &&
+            $(field).hasClass('select2-hidden-accessible')
+        ) {
+            $(field).trigger('change');
+        } else {
+            field.dispatchEvent(
+                new Event('change', { bubbles: true })
+            );
+        }
+    }
+
+    // --------------------------------------------------
+    // Helper: find all fields by ID or name.
+    // Handles names such as color, color[], and repeated
+    // checkbox/radio names.
+    // --------------------------------------------------
+    function findFields(fieldName) {
+        const names = new Set([
+            fieldName,
+            fieldName + '[]'
+        ]);
+
+        return Array.from(form.elements).filter(function (field) {
+            return field.id === fieldName || names.has(field.name);
+        });
+    }
+
+    // --------------------------------------------------
+    // Helper: set values for input, select, checkbox,
+    // radio, multi-select, and textarea fields.
+    // --------------------------------------------------
+    function setFieldValue(field, savedValue) {
+        if (!field || savedValue == null) {
+            return;
+        }
+
+        const values = normalizeValues(savedValue);
+        const selectedValues = new Set(values);
+
+        if (field.type === 'checkbox' || field.type === 'radio') {
+            field.checked = selectedValues.has(String(field.value));
+            refreshField(field);
+            return;
+        }
+
+        if (field.tagName === 'SELECT') {
+            if (field.multiple) {
+                Array.from(field.options).forEach(function (option) {
+                    option.selected = selectedValues.has(
+                        String(option.value)
+                    );
+                });
+            } else {
+                const saved = values[0] ?? '';
+                const optionExists = Array.from(field.options).some(
+                    option => String(option.value) === String(saved)
+                );
+
+                // Never assign a value that has no matching option.
+                field.value = optionExists ? String(saved) : '';
+            }
+
+            refreshField(field);
+            return;
+        }
+
+        field.value = values[0] ?? '';
+        refreshField(field);
+    }
+
+    // --------------------------------------------------
+    // Helper: restore a named field, including groups.
+    // --------------------------------------------------
+    function restoreField(fieldName, savedValue) {
+        if (savedValue == null) {
+            return;
+        }
+
+        const fields = findFields(fieldName);
+
+        if (fields.length === 0) {
+            return;
+        }
+
+        const firstField = fields[0];
+
+        if (
+            firstField.type === 'checkbox' ||
+            firstField.type === 'radio'
+        ) {
+            fields.forEach(function (field) {
+                setFieldValue(field, savedValue);
+            });
+
+            return;
+        }
+
+        // Use the first matching field for ordinary controls.
+        setFieldValue(firstField, savedValue);
+    }
+
+    // --------------------------------------------------
+    // Helper: restore saved dynamic attributes after
+    // createAttributeField() has created the controls.
+    //
+    // Supports:
+    // data-attribute-name="Color"
+    // input/select/textarea, checkbox, radio, multiselect.
+    // --------------------------------------------------
+
+
+
+
+    function restoreDynamicAttributes(attributes) {
+        const container = document.getElementById('dynamicAttributes');
+
+        const fields = container.querySelectorAll(
+            'input, select, textarea'
+        );
+
+        fields.forEach(function (field) {
+            const attributeName = field.dataset.attributeName;
+
+            if (
+                !attributeName ||
+                !Object.prototype.hasOwnProperty.call(
+                    attributes,
+                    attributeName
+                )
+            ) {
+                return;
+            }
+
+            const savedValue = attributes[attributeName];
+
+            if (savedValue == null) {
+                return;
+            }
+
+            if (
+                field.type === 'checkbox' ||
+                field.type === 'radio'
+            ) {
+                const values = new Set(normalizeValues(savedValue));
+
+                field.checked = values.has(String(field.value));
+                refreshField(field);
+
+                return;
+            }
+
+            setFieldValue(field, savedValue);
+        });
+    }
+
+    try {
+        // ==============================================
+        // STEP 1: Fetch the saved product from the server.
+        // ==============================================
+        const response = await $.ajax({
+            url: "<?= site_url('seller/products/draft') ?>/"
+                + encodeURIComponent(productId),
+            type: 'GET',
+            dataType: 'json'
+        });
+
+        if (response.status !== 'success') {
+            throw new Error(
+                response.message || 'Unable to load product.'
+            );
+        }
+
+        const product = response.product || {};
+        const attributes = response.attributes || {};
+        
+
+        const savedImages = response.images || [];
+
+        // console.log(savedImages);
+
+        if (typeof renderExistingProductImages === 'function') {
+            renderExistingProductImages(savedImages);
+        }
+
+        // ==============================================
+        // STEP 2: Restore the hidden product ID.
+        // ==============================================
+        const productIdField = document.getElementById('product_id');
+
+        if (productIdField) {
+            productIdField.value = product.id ?? productId;
+        }
+
+        // ==============================================
+        // STEP 3: Map database columns to form field names.
+        // ==============================================
+        const fieldMap = {
+            product_name: 'product_name',
+            brand: 'brand',
+            sub_brand: 'sub_brand',
+            sku: 'sku',
+            description: 'description',
+            product_condition: 'condition',
+            mrp: 'mrp',
+            selling_price: 'selling_price',
+            listing_price: 'final_listing_price',
+            shipping_allowance: 'shipping_allowance',
+            stock_quantity: 'stock_quantity',
+            low_stock: 'low_stock',
+            shipping_weight: 'shipping_weight',
+            shipping_days: 'shipping_days',
+            shipping_type: 'shipping_type',
+            package_length: 'length',
+            package_width: 'width',
+            package_height: 'height',
+            country_of_origin: 'country_of_origin',
+            hsn_code: 'hsn_code',
+            gst_value: 'gst_value',
+            manufacturer_name: 'manufacturer_name',
+            packer_name: 'packer_name',
+            key_features: 'key_features',
+            pack_of: 'pack_of',
+            min_order_quantity: 'min_order_quantity'
+        };
+
+        // ==============================================
+        // STEP 4: Restore normal fields.
+        // ==============================================
+        Object.entries(fieldMap).forEach(function ([column, fieldName]) {
+            if (product[column] != null) {
+                restoreField(fieldName, product[column]);
+            }
+        });
+
+        // ==============================================
+        // STEP 5: Restore category and dependent dropdowns.
+        // Wait for each AJAX call to complete before
+        // assigning the saved selected value.
+        // ==============================================
+        const categoryId = product.category_id;
+        const categorySlug = product.category_slug;
+        const subcategoryId = product.subcategory_id;
+        const productTypeId = product.product_type_id;
+
+        if (categoryId != null) {
+            // Restore the saved category selection.
+            const categoryFields = findFields('category');
+
+            const matchingCategory = categoryFields.find(function (field) {
+                const matchesId =
+                    categoryId != null &&
+                    String(field.value) === String(categoryId);
+
+                const matchesSlug =
+                    categorySlug &&
+                    field.dataset.slug === categorySlug;
+
+                return matchesId || matchesSlug;
+            });
+
+            if (matchingCategory) {
+                matchingCategory.checked = true;
+
+                // Update the category-specific fields directly.
+                const selectedId = String(matchingCategory.value);
+
+                document.querySelectorAll('.category-fields').forEach(group => {
+                    const active = group.dataset.category === selectedId;
+
+                    group.classList.toggle('hidden', !active);
+
+                    group.querySelectorAll('input, select, textarea').forEach(field => {
+                        field.disabled = !active;
+                    });
+                });
+            }
+
+            // Load subcategory options first.
+            const subcategoriesLoaded =
+                await loadSubcategories(categoryId);
+
+            if (!subcategoriesLoaded) {
+                throw new Error(
+                    'Unable to restore the saved subcategory options.'
+                );
+            }
+
+            // Select the saved subcategory only after options exist.
+            if (subcategoryId != null) {
+                const subcategoryExists = Array.from(
+                    subcategorySelect.options
+                ).some(option =>
+                    String(option.value) === String(subcategoryId)
+                );
+
+                if (subcategoryExists) {
+                    subcategorySelect.value = String(subcategoryId);
+                    refreshField(subcategorySelect);
+                }
+
+                // Load product types for the saved subcategory.
+                const productTypesLoaded =
+                    await loadProductTypes(subcategoryId);
+
+                if (!productTypesLoaded) {
+                    throw new Error(
+                        'Unable to restore the saved product type options.'
+                    );
+                }
+
+                if (productTypeId != null) {
+                    const productTypeExists = Array.from(
+                        productTypeSelect.options
+                    ).some(option =>
+                        String(option.value) === String(productTypeId)
+                    );
+
+                    if (productTypeExists) {
+                        productTypeSelect.value = String(productTypeId);
+                        refreshField(productTypeSelect);
+                    }
+                }
+
+                // Generate the dynamic attributes for this selection.
+                const attributesLoaded =
+                    await loadCategoryAttributes(
+                        categoryId,
+                        subcategoryId
+                    );
+
+                if (!attributesLoaded) {
+                    throw new Error(
+                        'Unable to restore the saved category attributes.'
+                    );
+                }
+            } else {
+                const attributesLoaded =
+                    await loadCategoryAttributes(categoryId, '');
+
+                if (!attributesLoaded) {
+                    throw new Error(
+                        'Unable to load category attributes.'
+                    );
+                }
+            }
+
+            // ==========================================
+            // STEP 6: Restore dynamic attributes AFTER
+            // all their fields have been generated.
+            // ==========================================
+            restoreDynamicAttributes(attributes);
+        }
+
+        // ==============================================
+        // STEP 7: Restore any other product fields
+        // returned by the API, including additional
+        // saved select fields with matching field names.
+        // ==============================================
+        const excludedKeys = new Set([
+            'id',
+            'category',
+            'category_id',
+            'category_slug',
+            'subcategory_id',
+            'product_type_id',
+            'attributes',
+            'status'
+        ]);
+
+        Object.entries(product).forEach(function ([key, value]) {
+            if (
+                value == null ||
+                excludedKeys.has(key) ||
+                Object.prototype.hasOwnProperty.call(fieldMap, key)
+            ) {
+                return;
+            }
+
+            restoreField(key, value);
+        });
+
+        // ==============================================
+        // STEP 8: Restore listing status.
+        // ==============================================
+        const statusField = document.getElementById('product_status');
+
+        if (statusField && product.status != null) {
+            setFieldValue(statusField, product.status);
+        }
+
+        // ==============================================
+        // STEP 9: Refresh select widgets and calculations.
+        // ==============================================
+        if (window.jQuery) {
+            $('.select2-hidden-accessible').each(function () {
+                $(this).trigger('change');
+            });
+        }
+
+        if (typeof calculateListingPrice === 'function') {
+            calculateListingPrice();
+        }
+
+        if (typeof buildReview === 'function') {
+            buildReview();
+        }
+
+        console.log('Product draft restored successfully:', product.id);
+
+    } catch (error) {
+        console.error('Draft restoration failed:', error);
+
+        Swal.fire(
+            'Unable to Load Product',
+            error.responseJSON?.message ||
+                error.message ||
+                'Please try again.',
+            'error'
+        );
+    }
+}
+
+$(document).ready(function () {
+    restoreSavedDraft();
+});
+
+
+</script>
+
 
 </body>
 </html>

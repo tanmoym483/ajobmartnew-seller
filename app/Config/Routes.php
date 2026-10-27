@@ -43,6 +43,41 @@ $routes->post(
 );
 
 $routes->get(
+    'seller/products/subcategories/(:num)',
+    'SellerProducts::subcategories/$1'
+);
+
+$routes->get(
     'seller/products/category-attributes/(:num)',
     'SellerProducts::getCategoryAttributes/$1'
+);
+
+$routes->get('seller/products', 'SellerProducts::index');
+$routes->get('seller/products/list-data', 'SellerProducts::listData');
+
+
+$routes->get(
+    'seller/products/product-types/(:num)',
+    'SellerProducts::productTypes/$1'
+);
+
+$routes->get(
+    'seller/hsn/search',
+    '\App\Controllers\HsnLookup::search'
+);
+
+$routes->post(
+    'seller/inventory/update-stock',
+    'SellerProducts::updateStock'
+);
+
+
+$routes->get(
+    'seller/products/draft/(:num)',
+    'SellerProducts::getDraft/$1'
+);
+
+$routes->get(
+    'seller/products/check-sku',
+    'SellerProducts::checkSku'
 );

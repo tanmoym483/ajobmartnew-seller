@@ -13,7 +13,7 @@
 
         <a href="<?= site_url('seller/products') ?>"
            class="aj-nav-link">
-            <i class="fa-solid fa-box"></i> My Products
+            <i class="fa-solid fa-box"></i> Listing
         </a>
 
         <a href="<?= site_url('seller/orders') ?>"
