@@ -1,0 +1,15 @@
+# CodeIgniter generated files
+/writable/cache/*
+/writable/logs/*
+/writable/session/*
+/writable/uploads/*
+
+# Keep protection files
+!/writable/cache/.htaccess
+!/writable/cache/index.html
+!/writable/logs/.htaccess
+!/writable/logs/index.html
+!/writable/session/.htaccess
+!/writable/session/index.html
+!/writable/uploads/.htaccess
+!/writable/uploads/index.html

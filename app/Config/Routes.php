@@ -81,3 +81,18 @@ $routes->get(
     'seller/products/check-sku',
     'SellerProducts::checkSku'
 );
+
+$routes->get('seller/orders', 'Orders::index');
+// $routes->get('seller/orders/details/(:num)', 'Orders::details/$1');
+// $routes->post('seller/orders/update-status', 'Orders::updateStatus');
+
+
+$routes->get('seller/orders', 'Orders::index');
+$routes->get('seller/orders/list-data', 'Orders::listData');
+
+$routes->post('seller/orders/mark-shipped', 'Orders::markShipped');
+$routes->post('seller/orders/mark-delivered', 'Orders::markDelivered');
+
+// These two controller actions still need to be implemented.
+$routes->post('seller/orders/generate-label', 'Orders::generateLabel');
+$routes->get('seller/orders/label/(:num)', 'Orders::viewLabel/$1');

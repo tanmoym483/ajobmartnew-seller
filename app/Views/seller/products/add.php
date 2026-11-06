@@ -1422,19 +1422,27 @@ indicators.forEach(function (indicator) {
  
 
 // Change fields automatically when the category changes.
-form.querySelectorAll('[name="category"]').forEach(radio => {
-    radio.addEventListener('change', () => {
+form.querySelectorAll('[name="category"]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+
+        // Load subcategories for selected category.
+        loadSubcategories(this.value);
+
+        // Show fields belonging to the selected category.
         const category = selectedCategory();
 
         document.querySelectorAll('.category-fields').forEach(group => {
             const active = group.dataset.category === category;
+
             group.classList.toggle('hidden', !active);
 
-            // Hidden category fields must not be validated or submitted.
             group.querySelectorAll('input, select, textarea').forEach(field => {
                 field.disabled = !active;
             });
         });
+
+        // Automatically navigate to Step 2.
+        showStep(2);
     });
 });
 

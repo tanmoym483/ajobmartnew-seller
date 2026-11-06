@@ -93,7 +93,11 @@ public function listData()
         ->getResultArray();
 
     // The URL must point to the publicly accessible shared uploads folder.
-    $sharedUploadUrl = 'C:/xampp/htdocs/ajobmart-shared';
+    $sharedUploadUrl = str_replace(
+                '\\',
+                '/',
+                rtrim(getenv('AJOBMART_SHARED_UPLOAD_PATH') ?: '', '/')
+            );
 
     foreach ($products as &$product) {
         $path = trim((string) ($product['image_path'] ?? ''));
@@ -102,7 +106,6 @@ public function listData()
             $product['image_url'] = $path;
         } elseif ($path !== '') {
             $product['image_url'] = $sharedUploadUrl
-                . '/'
                 . ltrim(str_replace('\\', '/', $path), '/');
         } else {
             $product['image_url'] = '';
@@ -541,63 +544,63 @@ public function getCategoryAttributes($categoryId = null)
             }
 
             
-$images = $this->request->getFileMultiple('product_images') ?? [];
+                $images = $this->request->getFileMultiple('product_images') ?? [];
 
-$images = array_values(array_filter(
-    $images,
-    static fn ($file) =>
-        $file instanceof \CodeIgniter\HTTP\Files\UploadedFile
-        && $file->getError() !== UPLOAD_ERR_NO_FILE
-));
+                $images = array_values(array_filter(
+                    $images,
+                    static fn ($file) =>
+                        $file instanceof \CodeIgniter\HTTP\Files\UploadedFile
+                        && $file->getError() !== UPLOAD_ERR_NO_FILE
+                ));
 
-// Existing images submitted by the form.
-$removedImageIds = $this->request->getPost('removed_image_ids') ?? [];
+                // Existing images submitted by the form.
+                $removedImageIds = $this->request->getPost('removed_image_ids') ?? [];
 
-if (!is_array($removedImageIds)) {
-    $removedImageIds = [];
-}
+                if (!is_array($removedImageIds)) {
+                    $removedImageIds = [];
+                }
 
-// Count existing images that will remain after removals.
-// Only count images belonging to this product and seller.
-$existingImageCount = 0;
+                // Count existing images that will remain after removals.
+                // Only count images belonging to this product and seller.
+                $existingImageCount = 0;
 
-if ($productId > 0) {
-    $productExists = $db->table('ajobmart_products')
-        ->where('id', $productId)
-        ->where('seller_id', $sellerId)
-        ->countAllResults();
+                if ($productId > 0) {
+                    $productExists = $db->table('ajobmart_products')
+                        ->where('id', $productId)
+                        ->where('seller_id', $sellerId)
+                        ->countAllResults();
 
-    if (!$productExists) {
-        return $this->response->setStatusCode(404)->setJSON([
-            'status'  => 'error',
-            'message' => 'Product not found or you do not have permission to edit it.',
-        ]);
-    }
+                    if (!$productExists) {
+                        return $this->response->setStatusCode(404)->setJSON([
+                            'status'  => 'error',
+                            'message' => 'Product not found or you do not have permission to edit it.',
+                        ]);
+                    }
 
-    $existingImagesQuery = $db->table('ajobmart_product_images')
-        ->where('product_id', $productId);
+                    $existingImagesQuery = $db->table('ajobmart_product_images')
+                        ->where('product_id', $productId);
 
-    if (!empty($removedImageIds)) {
-        $removedImageIds = array_values(array_unique(array_filter(
-            array_map('intval', $removedImageIds),
-            static fn ($id) => $id > 0
-        )));
+                    if (!empty($removedImageIds)) {
+                        $removedImageIds = array_values(array_unique(array_filter(
+                            array_map('intval', $removedImageIds),
+                            static fn ($id) => $id > 0
+                        )));
 
-        if (!empty($removedImageIds)) {
-            $existingImagesQuery->whereNotIn('id', $removedImageIds);
-        }
-    }
+                        if (!empty($removedImageIds)) {
+                            $existingImagesQuery->whereNotIn('id', $removedImageIds);
+                        }
+                    }
 
-    $existingImageCount = $existingImagesQuery->countAllResults();
-}
+                    $existingImageCount = $existingImagesQuery->countAllResults();
+                }
 
-$totalImageCount = $existingImageCount + count($images);
+                $totalImageCount = $existingImageCount + count($images);
 
-if ($totalImageCount < 1 || $totalImageCount > 8) {
-    throw new \RuntimeException(
-        'A product must have between 1 and 8 images in total.'
-    );
-}
+                if ($totalImageCount < 1 || $totalImageCount > 8) {
+                    throw new \RuntimeException(
+                        'A product must have between 1 and 8 images in total.'
+                    );
+                }
 
 
             // Validate the seller belongs to the existing sellers table.
@@ -620,7 +623,11 @@ if ($totalImageCount < 1 || $totalImageCount > 8) {
             
             $projectRoot = dirname(rtrim(FCPATH, '\\/'));
 
-            $sharedRoot = 'C:\\xampp\\htdocs\\ajobmart-shared';
+            $sharedRoot = str_replace(
+                '\\',
+                '/',
+                rtrim(getenv('AJOBMART_SHARED_UPLOAD_PATH') ?: '', '/')
+            );
 
 
             $year  = date('Y');
@@ -1692,6 +1699,7 @@ private function convertImageToWebp(
 
     // Fetch active shipping rates.
     $rates = $db->table('ajobmart_shipping_rates')
+        ->where('courier_name', 'india_post')
         ->where('is_active', 1)
         ->orderBy('min_weight_grams', 'ASC')
         ->get()
