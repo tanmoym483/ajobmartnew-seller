@@ -1013,18 +1013,53 @@
                             </small>
                         </div>
 
+                        
+                        
+
+                        
                         <div class="field full">
                             <label for="final_listing_price">
                                 Final Listing Price (₹)
                             </label>
+
                             <input type="number"
                                 id="final_listing_price"
                                 name="final_listing_price"
                                 readonly>
+
                             <div class="help">
-                                Automatically calculated from your base price and shipping allowance.
+                                This price includes an additional 20% promotional
+                                discount provision on the combined selling price
+                                and shipping allowance.
+
+                                Ajobmart will use this additional amount to provide
+                                promotional discounts to customers during purchases.
                             </div>
                         </div>
+
+                        <div class="field full">
+                            <div class="notice" style="margin-top:10px;">
+                                <strong>Why is an additional 20% included?</strong>
+
+                                <p style="margin:8px 0 0;">
+                                    Ajobmart adds 20% to the product's selling price
+                                    and shipping allowance to create room for customer
+                                    promotional offers.
+                                </p>
+
+                                <ul style="margin:8px 0 0;padding-left:20px;">
+                                    <li>Up to 20% discount on online payments.</li>
+                                    <li>Up to 10% discount on Cash on Delivery (COD).</li>
+                                </ul>
+
+                                <small>
+                                    These are planned customer promotional discounts.
+                                    The final listing price is the amount saved for
+                                    this product.
+                                </small>
+                            </div>
+                        </div>
+
 
                         <div class="field">
                             <label for="shipping_days">Dispatch Time</label>
@@ -1927,6 +1962,15 @@ function buildReview() {
         ['Final Listing Price',
             '₹' + (Number(getValue('final_listing_price')) || 0).toFixed(2),
             'final_listing_price'],
+        
+        ['Customer Offer Price',
+            '₹' + (Number(getValue('customer_offer_price')) || 0).toFixed(2),
+            'customer_offer_price'],
+
+        ['Customer Offer Discount',
+            getValue('customer_offer_discount') + '%',
+            'customer_offer_discount'],
+
         ['Stock Quantity', getValue('stock_quantity'), 'stock_quantity'],
         ['Low Stock Alert', getValue('low_stock'), 'low_stock'],
         ['Length', getValue('length') ? getValue('length') + ' cm' : '', 'length'],
@@ -2153,6 +2197,7 @@ $(document).on('submit', '#productForm', function (e) {
 });
 
 
+
 function calculateListingPrice() {
     const basePrice = parseFloat(
         document.getElementById('selling_price').value
@@ -2162,9 +2207,9 @@ function calculateListingPrice() {
         document.getElementById('shipping_allowance').value
     );
 
-    const finalPriceInput = document.getElementById('final_listing_price');
+    const finalPriceInput =
+        document.getElementById('final_listing_price');
 
-    // Wait until both values are available.
     if (
         !Number.isFinite(basePrice) ||
         basePrice <= 0 ||
@@ -2175,15 +2220,17 @@ function calculateListingPrice() {
         return;
     }
 
-    const finalPrice = basePrice + shippingAllowance;
+    // Base price + shipping allowance + 20%
+    const finalPrice =
+        Math.round((basePrice + shippingAllowance) / 0.80);
 
     finalPriceInput.value = finalPrice.toFixed(2);
 
-    // Refresh the review if the seller is on step 4.
-    if (typeof currentStep !== 'undefined' && currentStep === 4) {
+    if (currentStep === 4) {
         buildReview();
     }
 }
+
 
 // Recalculate when either value changes.
 document.getElementById('selling_price')

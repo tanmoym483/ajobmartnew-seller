@@ -808,6 +808,8 @@ public function getCategoryAttributes($categoryId = null)
                 'mrp'                  => $mrp,
                 'selling_price'        => $price,
                 'listing_price'        => $listprice,
+                'customer_view_price'  => (float) $this->request->getPost('customer_offer_price'),
+                'customer_discount_percent' => (float) $this->request->getPost('customer_offer_discount'),
                 'stock_quantity'       => (int) $this->request->getPost('stock_quantity'),
                 'low_stock'            => (int) ($this->request->getPost('low_stock') ?: 5),
 
@@ -821,6 +823,7 @@ public function getCategoryAttributes($categoryId = null)
                 'approval_status'      => 'pending',
                 'country_of_origin'    => $this->request->getPost('country_of_origin'),
                 'hsn_code'             => $hsnCode !== '' ? $hsnCode : null,
+                'gst_value'            => $this->request->getPost('gst_value'),
                 'manufacturer_name'    => $this->request->getPost('manufacturer_name'),
                 'packer_name'          => $this->request->getPost('packer_name'),
                 'model_number_general' => $this->request->getPost('model_number_general'),
@@ -1699,7 +1702,7 @@ private function convertImageToWebp(
 
     // Fetch active shipping rates.
     $rates = $db->table('ajobmart_shipping_rates')
-        ->where('courier_name', 'india_post')
+        ->where('courier_name', 'India Post')
         ->where('is_active', 1)
         ->orderBy('min_weight_grams', 'ASC')
         ->get()
