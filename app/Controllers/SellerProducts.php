@@ -826,7 +826,7 @@ public function getCategoryAttributes($categoryId = null)
                 'shipping_type'        => $this->request->getPost('shipping_type'),
                 'status'               => $this->request->getPost('product_status'),
 
-                'approval_status'      => 'pending',
+                'approval_status'      => 'approved',
                 'country_of_origin'    => $this->request->getPost('country_of_origin'),
                 'hsn_code'             => $hsnCode !== '' ? $hsnCode : null,
                 'gst_value'            => $this->request->getPost('gst_value'),
