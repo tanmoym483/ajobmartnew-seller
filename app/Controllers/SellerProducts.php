@@ -30,6 +30,7 @@ public function index()
     if (!$this->session->get('seller_id')) {
             return redirect()->to(site_url('seller'));
         }
+    
 
     return $this->view('seller/products/index', [
         'pageTitle' => 'My Products',
@@ -125,24 +126,31 @@ public function listData()
     /**
      * Add Product Page
      */
-    public function add()
-    {
-        if (!$this->session->get('seller_id')) {
-            return redirect()->to(site_url('seller'));
-        }
+    
+public function add()
+{
+    if (!$this->session->get('seller_id')) {
+        return redirect()->to(site_url('seller'));
+    }
 
-        $categories = $this->db->table('ajobmart_categories')
+    if ($this->session->get('seller_status') === 'pending') {
+        return redirect()->to('/seller/dashboard')
+            ->with('error', 'Your Account is not verified or approved.');
+    }
+
+    $categories = $this->db->table('ajobmart_categories')
         ->select('id, name, slug')
         ->where('status', 'active')
         ->orderBy('sort_order', 'ASC')
         ->get()
         ->getResultArray();
 
-        return $this->view('seller/products/add', [
-            'title' => 'Add New Product',
-            'categories' => $categories
-        ]);
-    }
+    return $this->view('seller/products/add', [
+        'title' => 'Add New Product',
+        'categories' => $categories
+    ]);
+}
+
 
     
 public function getCategoryAttributes($categoryId = null)
