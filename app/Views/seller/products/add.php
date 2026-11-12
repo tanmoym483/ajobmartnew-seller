@@ -1962,14 +1962,6 @@ function buildReview() {
         ['Final Listing Price',
             '₹' + (Number(getValue('final_listing_price')) || 0).toFixed(2),
             'final_listing_price'],
-        
-        ['Customer Offer Price',
-            '₹' + (Number(getValue('customer_offer_price')) || 0).toFixed(2),
-            'customer_offer_price'],
-
-        ['Customer Offer Discount',
-            getValue('customer_offer_discount') + '%',
-            'customer_offer_discount'],
 
         ['Stock Quantity', getValue('stock_quantity'), 'stock_quantity'],
         ['Low Stock Alert', getValue('low_stock'), 'low_stock'],

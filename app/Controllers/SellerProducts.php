@@ -808,8 +808,7 @@ public function getCategoryAttributes($categoryId = null)
                 'mrp'                  => $mrp,
                 'selling_price'        => $price,
                 'listing_price'        => $listprice,
-                'customer_view_price'  => (float) $this->request->getPost('customer_offer_price'),
-                'customer_discount_percent' => (float) $this->request->getPost('customer_offer_discount'),
+                
                 'stock_quantity'       => (int) $this->request->getPost('stock_quantity'),
                 'low_stock'            => (int) ($this->request->getPost('low_stock') ?: 5),
 

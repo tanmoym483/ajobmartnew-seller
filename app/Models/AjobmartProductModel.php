@@ -34,8 +34,6 @@ class AjobmartProductModel extends Model
         'mrp',
         'selling_price',
         'listing_price',
-        'customer_view_price',
-        'customer_discount_percent',
         'shipping_allowance',
         'stock_quantity',
         'low_stock',
