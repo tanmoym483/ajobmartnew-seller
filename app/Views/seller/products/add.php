@@ -1231,6 +1231,8 @@ function selectedCategory() {
 const subcategorySelect = document.getElementById('subcategory_id');
 const subcategoryWrapper = document.getElementById('subcategoryWrapper');
 const subcategoryMessage = document.getElementById('subcategoryMessage');
+const producttypeSelect = document.getElementById('product_type_id');
+
 
 let subcategoryRequestId = 0;
 
@@ -1310,10 +1312,45 @@ form.querySelectorAll('[name="category"]').forEach(function (radio) {
     });
 });
 
+
 subcategorySelect.addEventListener('change', function () {
-    loadProductTypes(this.value);
-    loadCategoryAttributes(selectedCategory(), this.value);
+
+    const subcategoryId = this.value;
+
+    // Reset product type
+    producttypeSelect.replaceChildren(
+        new Option('Select product type', '')
+    );
+
+    producttypeSelect.disabled = true;
+    producttypeSelect.required = false;
+
+    // Load product types for selected subcategory
+    loadProductTypes(subcategoryId);
+
+    // Load category + subcategory attributes
+    loadCategoryAttributes(
+        selectedCategory(),
+        subcategoryId,
+        ''
+    );
 });
+
+
+producttypeSelect.addEventListener('change', function () {
+
+    const categoryId = selectedCategory();
+    const subcategoryId = subcategorySelect.value;
+    const producttypeId = this.value;
+
+    // Reload attributes for selected product type
+    loadCategoryAttributes(
+        categoryId,
+        subcategoryId,
+        producttypeId
+    );
+});
+
 
 function showStep(number) {
     currentStep = number;
@@ -2462,7 +2499,7 @@ function createAttributeField(attribute) {
 let attributeRequestId = 0;
 
 
-function loadCategoryAttributes(categoryId, subcategoryId = '') {
+function loadCategoryAttributes(categoryId, subcategoryId = '', producttypeId = '') {
     const container = document.getElementById('dynamicAttributes');
     const requestId = ++attributeRequestId;
 
@@ -2483,7 +2520,8 @@ function loadCategoryAttributes(categoryId, subcategoryId = '') {
             + encodeURIComponent(categoryId),
         type: 'GET',
         data: {
-            subcategory_id: subcategoryId
+            subcategory_id: subcategoryId,
+            producttype_id: producttypeId
         },
         dataType: 'json'
     }).then(function (response) {

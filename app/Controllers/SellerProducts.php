@@ -153,17 +153,16 @@ public function add()
 
 
     
+
 public function getCategoryAttributes($categoryId = null)
 {
     $categoryId = (int) $categoryId;
 
     if ($categoryId <= 0) {
-        return $this->response
-            ->setStatusCode(400)
-            ->setJSON([
-                'status'  => 'error',
-                'message' => 'Please select a valid category.'
-            ]);
+        return $this->response->setStatusCode(400)->setJSON([
+            'status'  => 'error',
+            'message' => 'Please select a valid category.'
+        ]);
     }
 
     $db = $this->db;
@@ -177,28 +176,21 @@ public function getCategoryAttributes($categoryId = null)
         ->getRowArray();
 
     if (!$category) {
-        return $this->response
-            ->setStatusCode(404)
-            ->setJSON([
-                'status'  => 'error',
-                'message' => 'Category not found.'
-            ]);
+        return $this->response->setStatusCode(404)->setJSON([
+            'status'  => 'error',
+            'message' => 'Category not found.'
+        ]);
     }
 
-    // Read selected subcategory from GET parameters
     $subcategoryId = (int) $this->request->getGet('subcategory_id');
+    $producttypeId = (int) $this->request->getGet('producttype_id');
 
-    // Start building the attributes query
-    $builder = $db->table('ajobmart_category_attributes')
-        ->select(
-            'id, category_id, subcategory_id, attribute_name, label, ' .
-            'input_type, is_required, options_json, sort_order'
-        )
-        ->where('category_id', $categoryId)
-        ->where('status', 'active');
+    $subcategory = null;
+    $producttype = null;
 
+    // Validate subcategory
     if ($subcategoryId > 0) {
-        // Ensure the subcategory belongs to the selected category
+
         $subcategory = $db->table('ajobmart_subcategories')
             ->select('id, category_id, name')
             ->where('id', $subcategoryId)
@@ -208,22 +200,74 @@ public function getCategoryAttributes($categoryId = null)
             ->getRowArray();
 
         if (!$subcategory) {
-            return $this->response
-                ->setStatusCode(404)
-                ->setJSON([
-                    'status'  => 'error',
-                    'message' => 'Subcategory not found.'
-                ]);
+            return $this->response->setStatusCode(404)->setJSON([
+                'status'  => 'error',
+                'message' => 'Subcategory not found.'
+            ]);
+        }
+    }
+
+    // Validate product type
+    if ($producttypeId > 0) {
+
+        if (!$subcategory) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'status'  => 'error',
+                'message' => 'Please select a subcategory first.'
+            ]);
         }
 
-        // Include general category attributes and selected subcategory attributes
+        $producttype = $db->table('ajobmart_product_types')
+            ->select('id, subcategory_id, name')
+            ->where('id', $producttypeId)
+            ->where('subcategory_id', $subcategoryId)
+            ->where('status', 1)
+            ->get()
+            ->getRowArray();
+
+        if (!$producttype) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'status'  => 'error',
+                'message' => 'Product type not found.'
+            ]);
+        }
+    }
+
+    // Build attribute query
+    $builder = $db->table('ajobmart_category_attributes')
+        ->select(
+            'id, category_id, subcategory_id, product_type_id, ' .
+            'attribute_name, label, input_type, is_required, ' .
+            'options_json, sort_order'
+        )
+        ->where('category_id', $categoryId)
+        ->where('status', 'active');
+
+    // Category + subcategory filtering
+    if ($subcategoryId > 0) {
+
         $builder->groupStart()
             ->where('subcategory_id', null)
             ->orWhere('subcategory_id', $subcategoryId)
             ->groupEnd();
+
     } else {
-        // No subcategory selected: only general category attributes
+
         $builder->where('subcategory_id', null);
+    }
+
+    // Product type filtering
+    if ($producttypeId > 0) {
+
+        $builder->groupStart()
+            ->where('product_type_id', null)
+            ->orWhere('product_type_id', $producttypeId)
+            ->groupEnd();
+
+    } else {
+
+        // Only general attributes until a product type is selected
+        $builder->where('product_type_id', null);
     }
 
     $attributes = $builder
@@ -233,12 +277,14 @@ public function getCategoryAttributes($categoryId = null)
         ->getResultArray();
 
     return $this->response->setJSON([
-        'status'       => 'success',
-        'category'     => $category,
-        'subcategory'  => $subcategory ?? null,
-        'attributes'   => $attributes
+        'status'      => 'success',
+        'category'    => $category,
+        'subcategory' => $subcategory,
+        'producttype' => $producttype,
+        'attributes'  => $attributes
     ]);
 }
+
 
 
     /**
@@ -965,7 +1011,10 @@ public function getCategoryAttributes($categoryId = null)
         ->setStatusCode(500)
         ->setJSON([
             'status'  => 'error',
-            'message' => 'Product could not be saved: ' . $e->getMessage(),
+            'message' => 'Product could not be saved: ' .
+                (trim($e->getMessage()) !== ''
+                    ? $e->getMessage()
+                    : 'An unexpected error occurred. Please try again.'),
         ]);
 }
 
