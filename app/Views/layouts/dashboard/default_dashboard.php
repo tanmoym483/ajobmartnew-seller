@@ -1069,7 +1069,8 @@ async function restoreSavedDraft() {
                 const attributesLoaded =
                     await loadCategoryAttributes(
                         categoryId,
-                        subcategoryId
+                        subcategoryId,
+                        productTypeId
                     );
 
                 if (!attributesLoaded) {

@@ -154,6 +154,7 @@ public function add()
 
     
 
+
 public function getCategoryAttributes($categoryId = null)
 {
     $categoryId = (int) $categoryId;
@@ -167,7 +168,10 @@ public function getCategoryAttributes($categoryId = null)
 
     $db = $this->db;
 
-    // Validate category
+    // =========================================
+    // 1. Validate category
+    // =========================================
+
     $category = $db->table('ajobmart_categories')
         ->select('id, name')
         ->where('id', $categoryId)
@@ -182,13 +186,20 @@ public function getCategoryAttributes($categoryId = null)
         ]);
     }
 
+    // =========================================
+    // 2. Get selected IDs
+    // =========================================
+
     $subcategoryId = (int) $this->request->getGet('subcategory_id');
     $producttypeId = (int) $this->request->getGet('producttype_id');
 
     $subcategory = null;
     $producttype = null;
 
-    // Validate subcategory
+    // =========================================
+    // 3. Validate subcategory
+    // =========================================
+
     if ($subcategoryId > 0) {
 
         $subcategory = $db->table('ajobmart_subcategories')
@@ -207,7 +218,10 @@ public function getCategoryAttributes($categoryId = null)
         }
     }
 
-    // Validate product type
+    // =========================================
+    // 4. Validate product type
+    // =========================================
+
     if ($producttypeId > 0) {
 
         if (!$subcategory) {
@@ -233,41 +247,75 @@ public function getCategoryAttributes($categoryId = null)
         }
     }
 
-    // Build attribute query
+    // =========================================
+    // 5. Fetch category attributes
+    // =========================================
+
     $builder = $db->table('ajobmart_category_attributes')
         ->select(
-            'id, category_id, subcategory_id, product_type_id, ' .
-            'attribute_name, label, input_type, is_required, ' .
-            'options_json, sort_order'
+            'id,
+            category_id,
+            subcategory_id,
+            product_type_id,
+            attribute_name,
+            label,
+            input_type,
+            is_required,
+            options_json,
+            sort_order'
         )
         ->where('category_id', $categoryId)
         ->where('status', 'active');
 
-    // Category + subcategory filtering
+    // =========================================
+    // 6. Subcategory filtering
+    // Include:
+    // - General category attributes
+    // - Selected subcategory attributes
+    // =========================================
+
     if ($subcategoryId > 0) {
 
         $builder->groupStart()
-            ->where('subcategory_id', null)
+            ->where('subcategory_id IS NULL', null, false)
+            ->orWhere('subcategory_id', 0)
+            ->orWhere('subcategory_id', '')
             ->orWhere('subcategory_id', $subcategoryId)
             ->groupEnd();
 
     } else {
 
-        $builder->where('subcategory_id', null);
+        $builder->groupStart()
+            ->where('subcategory_id IS NULL', null, false)
+            ->orWhere('subcategory_id', 0)
+            ->orWhere('subcategory_id', '')
+            ->groupEnd();
     }
 
-    // Product type filtering
+    // =========================================
+    // 7. Product type filtering
+    // Include:
+    // - General category attributes
+    // - Subcategory attributes
+    // - Selected product type attributes
+    // =========================================
+
     if ($producttypeId > 0) {
 
         $builder->groupStart()
-            ->where('product_type_id', null)
+            ->where('product_type_id IS NULL', null, false)
+            ->orWhere('product_type_id', 0)
+            ->orWhere('product_type_id', '')
             ->orWhere('product_type_id', $producttypeId)
             ->groupEnd();
 
     } else {
 
-        // Only general attributes until a product type is selected
-        $builder->where('product_type_id', null);
+        $builder->groupStart()
+            ->where('product_type_id IS NULL', null, false)
+            ->orWhere('product_type_id', 0)
+            ->orWhere('product_type_id', '')
+            ->groupEnd();
     }
 
     $attributes = $builder
@@ -276,12 +324,33 @@ public function getCategoryAttributes($categoryId = null)
         ->get()
         ->getResultArray();
 
+    // =========================================
+    // 8. Debug logging
+    // =========================================
+
+    log_message('debug', 'Product attribute request: ' . json_encode([
+        'category_id'    => $categoryId,
+        'subcategory_id' => $subcategoryId,
+        'product_type_id' => $producttypeId,
+        'attributes_found' => count($attributes)
+    ]));
+
+    // =========================================
+    // 9. Return JSON
+    // =========================================
+
     return $this->response->setJSON([
-        'status'      => 'success',
-        'category'    => $category,
-        'subcategory' => $subcategory,
-        'producttype' => $producttype,
-        'attributes'  => $attributes
+        'status'        => 'success',
+        'category'      => $category,
+        'subcategory'   => $subcategory,
+        'producttype'   => $producttype,
+        'attributes'    => $attributes,
+        'debug'         => [
+            'category_id'      => $categoryId,
+            'subcategory_id'   => $subcategoryId,
+            'product_type_id'  => $producttypeId,
+            'attributes_count' => count($attributes)
+        ]
     ]);
 }
 
