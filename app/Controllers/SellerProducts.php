@@ -317,11 +317,58 @@ public function getCategoryAttributes($categoryId = null)
             ]);
         }
 
+        
         $productId = (int) ($this->request->getPost('product_id') ?: 0);
 
+        $existingProduct = null;
+
+        if ($productId > 0) {
+
+            $existingProduct = $db->table('ajobmart_products')
+                ->where('id', $productId)
+                ->where('seller_id', $sellerId)
+                ->get()
+                ->getRowArray();
+
+            if (!$existingProduct) {
+                return $this->response->setStatusCode(404)->setJSON([
+                    'status'  => 'error',
+                    'message' => 'Product not found or you do not have permission to edit it.',
+                ]);
+            }
+
+            $approvalStatus = strtolower(trim(
+                (string) ($existingProduct['approval_status'] ?? '')
+            ));
+
+            log_message('debug', 'Product update check: ' . json_encode([
+                'product_id'     => $productId,
+                'approval_status'=> $approvalStatus,
+                'save_mode'      => $saveMode,
+                'posted_category'=> $this->request->getPost('category'),
+            ]));
+
+            if ($approvalStatus === 'approved') {
+
+                if ($saveMode !== 'approved') {
+                    return $this->response->setStatusCode(422)->setJSON([
+                        'status'  => 'error',
+                        'message' => 'Approved products cannot be saved as drafts.',
+                    ]);
+                }
+
+                return $this->updateApprovedProduct(
+                    $productId,
+                    (int) $sellerId
+                );
+            }
+        }
+
+        // Only draft products and new products reach this point.
         if ($saveMode === 'draft') {
             return $this->saveDraft();
         }
+
 
         $savedFiles = [];
         $transactionStarted = false;
@@ -1019,6 +1066,856 @@ public function getCategoryAttributes($categoryId = null)
 }
 
     }
+
+
+
+
+private function updateApprovedProduct(
+    int $productId,
+    int $sellerId
+): ResponseInterface {
+
+    $db = $this->db;
+
+    $savedFiles = [];
+    $filesToDelete = [];
+    $transactionStarted = false;
+
+    try {
+
+        // =========================================
+        // 1. Verify product ownership and approval
+        // =========================================
+
+        $product = $db->table('ajobmart_products')
+            ->where('id', $productId)
+            ->where('seller_id', $sellerId)
+            ->where('approval_status', 'approved')
+            ->get()
+            ->getRowArray();
+
+        if (!$product) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'status'  => 'error',
+                'message' => 'Approved product not found.',
+            ]);
+        }
+
+        // Existing category is always used.
+        // Never accept locked category IDs from POST.
+        $categoryId = (int) $product['category_id'];
+
+        // =====================================================
+        // 2. Validate editable fields
+        // =====================================================
+
+        $rules = [
+
+            'mrp' => [
+                'label' => 'MRP',
+                'rules' => 'required|decimal|greater_than[0]',
+            ],
+
+            'selling_price' => [
+                'label' => 'Selling price',
+                'rules' => 'required|decimal|greater_than[0]',
+            ],
+
+            'final_listing_price' => [
+                'label' => 'Final listing price',
+                'rules' => 'required|decimal|greater_than[0]',
+            ],
+
+            'shipping_allowance' => [
+                'label' => 'Shipping allowance',
+                'rules' => 'required|decimal|greater_than_equal_to[0]',
+            ],
+
+            'min_order_quantity' => [
+                'label' => 'Minimum order quantity',
+                'rules' => 'required|integer|greater_than[0]',
+            ],
+
+            'shipping_weight' => [
+                'label' => 'Shipping weight',
+                'rules' => 'permit_empty|decimal|greater_than_equal_to[0]',
+            ],
+
+            'description' => [
+                'label' => 'Description',
+                'rules' => 'required|min_length[10]|max_length[5000]',
+            ],
+
+            'stock_quantity' => [
+                'label' => 'Stock quantity',
+                'rules' => 'required|integer|greater_than_equal_to[0]',
+            ],
+
+            'product_status' => [
+                'label' => 'Product status',
+                'rules' => 'required|in_list[active,inactive]',
+            ],
+
+            'condition' => [
+                'label' => 'Product condition',
+                'rules' => 'required|in_list[new,refurbished,used]',
+            ],
+
+            'manufacturer_name' => [
+                'label' => 'Manufacturer name',
+                'rules' => 'permit_empty|max_length[255]',
+            ],
+
+            'packer_name' => [
+                'label' => 'Packer name',
+                'rules' => 'permit_empty|max_length[255]',
+            ],
+
+            'key_features' => [
+                'label' => 'Key features',
+                'rules' => 'permit_empty|max_length[5000]',
+            ],
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'status'  => 'error',
+                'message' => 'Please correct the editable product details.',
+                'errors'  => $this->validator->getErrors(),
+            ]);
+        }
+
+        // =====================================================
+        // 3. Read editable fields
+        // =====================================================
+
+        $mrp = (float) $this->request->getPost('mrp');
+
+        $sellingPrice = (float) $this->request->getPost('selling_price');
+
+        // These are calculated by the frontend.
+        // They are submitted as hidden/readonly fields.
+        // They are not editable fields in approved mode.
+
+        $listingPrice = (float) $this->request->getPost(
+            'final_listing_price'
+        );
+
+        $shippingAllowance = (float) $this->request->getPost(
+            'shipping_allowance'
+        );
+
+        $minOrderQuantity = (int) $this->request->getPost(
+            'min_order_quantity'
+        );
+
+        $shippingWeightInput = $this->request->getPost(
+            'shipping_weight'
+        );
+
+        $shippingWeight = (
+            $shippingWeightInput !== null &&
+            trim((string) $shippingWeightInput) !== ''
+        ) ? (float) $shippingWeightInput : null;
+
+        $description = trim(
+            (string) $this->request->getPost('description')
+        );
+
+        $stockQuantity = (int) $this->request->getPost(
+            'stock_quantity'
+        );
+
+        $productStatus = trim(
+            (string) $this->request->getPost('product_status')
+        );
+
+        $condition = trim(
+            (string) $this->request->getPost('condition')
+        );
+
+        $manufacturerName = trim(
+            (string) $this->request->getPost('manufacturer_name')
+        );
+
+        $packerName = trim(
+            (string) $this->request->getPost('packer_name')
+        );
+
+        $keyFeatures = trim(
+            (string) $this->request->getPost('key_features')
+        );
+
+        // =====================================================
+        // 4. Additional price and weight validation
+        // =====================================================
+
+        if ($sellingPrice > $mrp) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'status'  => 'error',
+                'message' => 'Selling price cannot be higher than MRP.',
+            ]);
+        }
+
+        if (
+            $mrp > 9999999999.99 ||
+            $sellingPrice > 9999999999.99 ||
+            $listingPrice > 9999999999.99 ||
+            ($shippingWeight !== null && $shippingWeight > 9999999999.99)
+        ) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'status'  => 'error',
+                'message' => 'An entered amount or weight is too large.',
+            ]);
+        }
+
+        if ($listingPrice <= 0 || $shippingAllowance < 0) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'status'  => 'error',
+                'message' => 'Invalid listing price or shipping allowance.',
+            ]);
+        }
+
+        // =========================================
+        // 3. Prepare dynamic attributes
+        // =========================================
+
+        // Use the EXISTING product category selections.
+        // Never accept category IDs from the approved-product form.
+
+        $categoryId = (int) $product['category_id'];
+
+        $postedAttributes = $this->request->getPost('attributes') ?? [];
+
+        if (!is_array($postedAttributes)) {
+            throw new \RuntimeException(
+                'Invalid category attribute data.'
+            );
+        }
+
+        $categoryAttributeRows = $db->table('ajobmart_category_attributes')
+            ->where('category_id', $categoryId)
+            ->where('status', 'active')
+            ->orderBy('sort_order', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $allowedAttributes = [];
+
+        foreach ($categoryAttributeRows as $attribute) {
+            $allowedAttributes[(int) $attribute['id']] = $attribute;
+        }
+
+        // Reject attribute IDs that do not belong to this category.
+        foreach ($postedAttributes as $submittedId => $submittedValue) {
+
+            if (
+                !ctype_digit((string) $submittedId) ||
+                !isset($allowedAttributes[(int) $submittedId])
+            ) {
+                throw new \RuntimeException(
+                    'An invalid attribute was submitted.'
+                );
+            }
+
+            if (!is_scalar($submittedValue) && $submittedValue !== null) {
+                throw new \RuntimeException(
+                    'Invalid category attribute value.'
+                );
+            }
+        }
+
+        $attributes = [];
+        $attributeValuesToSave = [];
+
+        foreach ($categoryAttributeRows as $attribute) {
+
+            $attributeId = (int) $attribute['id'];
+            $attributeName = $attribute['attribute_name'];
+            $label = $attribute['label'] ?: $attributeName;
+
+            $rawValue = $postedAttributes[$attributeId] ?? '';
+
+            $value = is_scalar($rawValue)
+                ? trim((string) $rawValue)
+                : '';
+
+            // Required attribute validation.
+            if (
+                (int) $attribute['is_required'] === 1 &&
+                $value === ''
+            ) {
+                throw new \RuntimeException(
+                    $label . ' is required.'
+                );
+            }
+
+            // Skip empty optional attributes.
+            if ($value === '') {
+                continue;
+            }
+
+            // Validate select options.
+            if (strtolower($attribute['input_type']) === 'select') {
+
+                $options = json_decode(
+                    $attribute['options_json'] ?? '[]',
+                    true
+                );
+
+                if (
+                    !is_array($options) ||
+                    !in_array($value, $options, true)
+                ) {
+                    throw new \RuntimeException(
+                        'Please select a valid option for ' . $label . '.'
+                    );
+                }
+            }
+
+            // Validate date attributes.
+            if (strtolower($attribute['input_type']) === 'date') {
+
+                $date = \DateTimeImmutable::createFromFormat(
+                    '!Y-m-d',
+                    $value
+                );
+
+                if (!$date || $date->format('Y-m-d') !== $value) {
+                    throw new \RuntimeException(
+                        'Please enter a valid date for ' . $label . '.'
+                    );
+                }
+            }
+
+            // Legacy JSON format.
+            $attributes[$attributeName] = $value;
+
+            // Normalized attribute table format.
+            $attributeValuesToSave[] = [
+                'attribute_id'    => $attributeId,
+                'attribute_value' => $value,
+            ];
+        }
+
+        $categoryAttributesJson = json_encode(
+            $attributes,
+            JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+        );
+
+        // =========================================
+        // 4. Process uploaded images
+        // =========================================
+
+        $images = $this->request->getFileMultiple('product_images') ?? [];
+
+        $images = array_values(array_filter(
+            $images,
+            static fn ($file) =>
+                $file instanceof \CodeIgniter\HTTP\Files\UploadedFile
+                && $file->getError() !== UPLOAD_ERR_NO_FILE
+        ));
+
+        $removedImageIds = $this->request->getPost('removed_image_ids') ?? [];
+
+        if (!is_array($removedImageIds)) {
+            $removedImageIds = [];
+        }
+
+        $removedImageIds = array_values(array_unique(array_filter(
+            array_map('intval', $removedImageIds),
+            static fn ($id) => $id > 0
+        )));
+
+        $existingImages = $db->table('ajobmart_product_images')
+            ->where('product_id', $productId)
+            ->orderBy('sort_order', 'ASC')
+            ->orderBy('id', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $existingById = [];
+
+        foreach ($existingImages as $image) {
+            $existingById[(int) $image['id']] = $image;
+        }
+
+        foreach ($removedImageIds as $imageId) {
+
+            if (!isset($existingById[$imageId])) {
+                return $this->response->setStatusCode(422)->setJSON([
+                    'status'  => 'error',
+                    'message' => 'An invalid product image was selected.',
+                ]);
+            }
+        }
+
+        $remainingImages = array_values(array_filter(
+            $existingImages,
+            static fn ($image) =>
+                !in_array(
+                    (int) $image['id'],
+                    $removedImageIds,
+                    true
+                )
+        ));
+
+        $totalImages = count($remainingImages) + count($images);
+
+        if ($totalImages < 1 || $totalImages > 8) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'status'  => 'error',
+                'message' => 'A product must have between 1 and 8 images in total.',
+            ]);
+        }
+
+        // =========================================
+        // 5. Prepare shared upload directory
+        // =========================================
+
+        $sharedRoot = str_replace(
+            '\\',
+            '/',
+            rtrim(getenv('AJOBMART_SHARED_UPLOAD_PATH') ?: '', '/')
+        );
+
+        if ($sharedRoot === '') {
+            throw new \RuntimeException(
+                'Shared image upload path is not configured.'
+            );
+        }
+
+        $year = date('Y');
+        $month = date('m');
+
+        $relativeDir = 'uploads/products/' . $year . '/' . $month;
+
+        $absoluteDir = $sharedRoot . '/' . $relativeDir;
+
+        if (!is_dir($absoluteDir)) {
+
+            if (
+                !mkdir($absoluteDir, 0755, true) &&
+                !is_dir($absoluteDir)
+            ) {
+                throw new \RuntimeException(
+                    'Cannot create shared image upload directory.'
+                );
+            }
+        }
+
+        if (!is_writable($absoluteDir)) {
+            throw new \RuntimeException(
+                'Shared image upload directory is not writable.'
+            );
+        }
+
+        // =========================================
+        // 6. Convert new images to WebP
+        // =========================================
+
+        $convertedImages = [];
+
+        foreach ($images as $file) {
+
+            if (!$file->isValid()) {
+                throw new \RuntimeException(
+                    'An uploaded image is invalid.'
+                );
+            }
+
+            if ($file->getSize() > 5 * 1024 * 1024) {
+                throw new \RuntimeException(
+                    'Each image must be no larger than 5 MB.'
+                );
+            }
+
+            $allowedMimeTypes = [
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+            ];
+
+            if (!in_array($file->getMimeType(), $allowedMimeTypes, true)) {
+                throw new \RuntimeException(
+                    'Only JPG, PNG and WebP images are supported.'
+                );
+            }
+
+            $source = file_get_contents($file->getTempName());
+
+            if ($source === false) {
+                throw new \RuntimeException(
+                    'Unable to read uploaded image.'
+                );
+            }
+
+            $imageInfo = @getimagesizefromstring($source);
+
+            if (
+                $imageInfo === false ||
+                $imageInfo[0] < 1 ||
+                $imageInfo[1] < 1 ||
+                $imageInfo[0] > 10000 ||
+                $imageInfo[1] > 10000 ||
+                ($imageInfo[0] * $imageInfo[1]) > 25000000
+            ) {
+                throw new \RuntimeException(
+                    'An image has unsupported dimensions.'
+                );
+            }
+
+            $image = @imagecreatefromstring($source);
+            unset($source);
+
+            if ($image === false) {
+                throw new \RuntimeException(
+                    'Unable to decode image. Check PHP GD support.'
+                );
+            }
+
+            imagepalettetotruecolor($image);
+            imagealphablending($image, false);
+            imagesavealpha($image, true);
+
+            $filename = bin2hex(random_bytes(16)) . '.webp';
+            $destination = $absoluteDir . '/' . $filename;
+
+            if (!imagewebp($image, $destination, 85)) {
+
+                imagedestroy($image);
+
+                throw new \RuntimeException(
+                    'WebP conversion failed.'
+                );
+            }
+
+            imagedestroy($image);
+
+            $savedFiles[] = $destination;
+
+            $convertedImages[] = [
+                'image_name' => $filename,
+                'image_path' => $relativeDir . '/' . $filename,
+            ];
+        }
+
+        // =========================================
+        // 7. Determine primary image
+        // =========================================
+
+        $hasPrimary = false;
+
+        foreach ($remainingImages as $image) {
+
+            if ((int) ($image['is_primary'] ?? 0) === 1) {
+                $hasPrimary = true;
+                break;
+            }
+        }
+
+        // =========================================
+        // 8. Begin database transaction
+        // =========================================
+
+        if ($db->transBegin() === false) {
+            throw new \RuntimeException(
+                'Unable to start database transaction.'
+            );
+        }
+
+        $transactionStarted = true;
+
+        // =========================================
+        // 9. Update approved product fields
+        // =========================================
+
+        // =========================================
+        // 9. Update complete approved product data
+        // =========================================
+
+        $updateData = [
+
+            // Seller and category information: locked.
+            'seller_id'          => $product['seller_id'],
+            'category_id'        => $product['category_id'],
+            'subcategory_id'     => $product['subcategory_id'],
+            'product_type_id'    => $product['product_type_id'] ?? null,
+            'category'           => $product['category'],
+
+            // Product identity: locked.
+            'product_name'       => $product['product_name'],
+            'brand'              => $product['brand'],
+            'sub_brand'          => $product['sub_brand'] ?? null,
+            'pack_of'            => $product['pack_of'],
+            'sku'                => $product['sku'],
+
+            // Editable fields.
+            'mrp'                => $mrp,
+            'selling_price'      => $sellingPrice,
+            'listing_price'      => $listingPrice,
+            'shipping_allowance' => $shippingAllowance,
+            'min_order_quantity' => $minOrderQuantity,
+            'shipping_weight'    => $shippingWeight,
+            'description'        => $description,
+            'product_condition'  => $condition,
+            'status'             => $productStatus,
+            'manufacturer_name'  => $manufacturerName,
+            'packer_name'        => $packerName,
+            'key_features'       => $keyFeatures,
+            'stock_quantity'     => $stockQuantity,
+
+            // Locked package dimensions.
+            'package_length'     => $product['package_length'] ?? null,
+            'package_width'      => $product['package_width'] ?? null,
+            'package_height'     => $product['package_height'] ?? null,
+
+            // Locked shipping configuration.
+            'low_stock'          => $product['low_stock'] ?? 5,
+            'shipping_days'      => $product['shipping_days'],
+            'shipping_type'      => $product['shipping_type'],
+
+            // Locked legal/product details.
+            'country_of_origin'  => $product['country_of_origin'] ?? null,
+            'hsn_code'           => $product['hsn_code'] ?? null,
+            'gst_value'          => $product['gst_value'] ?? null,
+            'model_number_general' => $product['model_number_general'] ?? null,
+
+            // Dynamic attributes.
+            'category_attributes' => $categoryAttributesJson,
+
+            // Keep approval status unchanged.
+            'approval_status'    => 'approved',
+        ];
+
+        $updated = $db->table('ajobmart_products')
+            ->where('id', $productId)
+            ->where('seller_id', $sellerId)
+            ->where('approval_status', 'approved')
+            ->update($updateData);
+
+        if ($updated === false) {
+            throw new \RuntimeException(
+                'Unable to update approved product: ' .
+                json_encode($db->error())
+            );
+        }
+
+        $updated = $db->table('ajobmart_products')
+            ->where('id', $productId)
+            ->where('seller_id', $sellerId)
+            ->where('approval_status', 'approved')
+            ->update($updateData);
+
+        if ($updated === false) {
+            throw new \RuntimeException(
+                'Unable to update approved product details.'
+            );
+        }
+
+        // =========================================
+        // 10. Replace normalized dynamic attributes
+        // =========================================
+
+        $deletedAttributes = $db->table(
+            'ajobmart_product_attribute_values'
+        )
+            ->where('product_id', $productId)
+            ->delete();
+
+        if ($deletedAttributes === false) {
+            throw new \RuntimeException(
+                'Unable to update existing product attributes.'
+            );
+        }
+
+        if (!empty($attributeValuesToSave)) {
+
+            $now = date('Y-m-d H:i:s');
+
+            $attributeInsertRows = [];
+
+            foreach ($attributeValuesToSave as $attributeValue) {
+
+                $attributeInsertRows[] = [
+                    'product_id'      => $productId,
+                    'attribute_id'    => (int) $attributeValue['attribute_id'],
+                    'attribute_value' => $attributeValue['attribute_value'],
+                    'created_at'      => $now,
+                    'updated_at'      => $now,
+                ];
+            }
+
+            $attributeInsert = $db->table(
+                'ajobmart_product_attribute_values'
+            )->insertBatch($attributeInsertRows);
+
+            if ($attributeInsert === false) {
+                throw new \RuntimeException(
+                    'Unable to save category-specific product attributes.'
+                );
+            }
+        }
+
+        // =========================================
+        // 11. Delete selected image records
+        // =========================================
+
+        foreach ($removedImageIds as $imageId) {
+            $filesToDelete[] = $existingById[$imageId]['image_path'];
+        }
+
+        if (!empty($removedImageIds)) {
+
+            $deleted = $db->table('ajobmart_product_images')
+                ->where('product_id', $productId)
+                ->whereIn('id', $removedImageIds)
+                ->delete();
+
+            if ($deleted === false) {
+                throw new \RuntimeException(
+                    'Unable to remove selected product images.'
+                );
+            }
+        }
+
+        // =========================================
+        // 12. Insert new image records
+        // =========================================
+
+        foreach ($convertedImages as $index => $imageData) {
+
+            $imageData['product_id'] = $productId;
+
+            $imageData['is_primary'] = (
+                !$hasPrimary && $index === 0
+            ) ? 1 : 0;
+
+            $imageData['sort_order'] =
+                count($remainingImages) + $index;
+
+            $imageData['created_at'] = date('Y-m-d H:i:s');
+
+            $inserted = $db->table('ajobmart_product_images')
+                ->insert($imageData);
+
+            if ($inserted === false) {
+                throw new \RuntimeException(
+                    'Unable to save a new product image.'
+                );
+            }
+
+            if ($imageData['is_primary'] === 1) {
+                $hasPrimary = true;
+            }
+        }
+
+        // =========================================
+        // 13. Ensure one primary image exists
+        // =========================================
+
+        if (!$hasPrimary) {
+
+            $firstImage = $db->table('ajobmart_product_images')
+                ->where('product_id', $productId)
+                ->orderBy('sort_order', 'ASC')
+                ->orderBy('id', 'ASC')
+                ->get()
+                ->getRowArray();
+
+            if ($firstImage) {
+
+                $db->table('ajobmart_product_images')
+                    ->where('product_id', $productId)
+                    ->update(['is_primary' => 0]);
+
+                $db->table('ajobmart_product_images')
+                    ->where('id', $firstImage['id'])
+                    ->where('product_id', $productId)
+                    ->update(['is_primary' => 1]);
+            }
+        }
+
+        // =========================================
+        // 14. Commit transaction
+        // =========================================
+
+        if (!$db->transStatus()) {
+            throw new \RuntimeException(
+                'Database transaction failed.'
+            );
+        }
+
+        $db->transCommit();
+        $transactionStarted = false;
+
+        // =========================================
+        // 15. Delete physical removed image files
+        // =========================================
+
+        foreach ($filesToDelete as $relativePath) {
+
+            $relativePath = ltrim(
+                str_replace('\\', '/', (string) $relativePath),
+                '/'
+            );
+
+            if (strpos($relativePath, 'uploads/products/') !== 0) {
+                continue;
+            }
+
+            $fullPath = $sharedRoot . '/' . $relativePath;
+
+            // Confirm the file is inside the shared upload directory.
+            $realRoot = realpath($sharedRoot);
+            $realFile = realpath($fullPath);
+
+            if (
+                $realRoot !== false &&
+                $realFile !== false &&
+                is_file($realFile) &&
+                strpos(
+                    str_replace('\\', '/', $realFile),
+                    rtrim(str_replace('\\', '/', $realRoot), '/') . '/'
+                ) === 0
+            ) {
+                @unlink($realFile);
+            }
+        }
+
+        return $this->response->setJSON([
+            'status'     => 'success',
+            'message'    => 'Approved product updated successfully.',
+            'product_id' => $productId,
+            'redirect'   => site_url('seller/dashboard'),
+        ]);
+
+    } catch (\Throwable $e) {
+
+        if ($transactionStarted) {
+            $db->transRollback();
+        }
+
+        // Remove newly generated files if the update failed.
+        foreach ($savedFiles as $path) {
+
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
+
+        log_message('error', 'Approved product update failed: {error}', [
+            'error' => $e->getMessage(),
+            'file'  => $e->getFile(),
+            'line'  => $e->getLine(),
+        ]);
+
+        return $this->response->setStatusCode(500)->setJSON([
+            'status'  => 'error',
+            'message' => 'Product update failed: ' . $e->getMessage(),
+        ]);
+    }
+}
 
 
     
@@ -1980,6 +2877,7 @@ public function productTypes($subcategoryId = null)
 
 
 
+
 public function getDraft(int $id): ResponseInterface
 {
     $sellerId = (int) ($this->session->get('seller_id') ?? 0);
@@ -1993,21 +2891,22 @@ public function getDraft(int $id): ResponseInterface
             ]);
     }
 
+    // Fetch only this seller's editable products.
     $product = $this->db->table('ajobmart_products p')
-    ->select('p.*, c.name AS category_name, c.slug AS category_slug')
-    ->join(
-        'ajobmart_categories c',
-        'c.id = p.category_id',
-        'left'
-    )
-    ->where('p.id', $id)
-    ->where('p.seller_id', $sellerId)
-    ->groupStart()
-        ->where('p.status', 'inactive')
-        ->orWhere('p.approval_status', 'draft')
-    ->groupEnd()
-    ->get()
-    ->getRowArray();
+        ->select('p.*, c.name AS category_name, c.slug AS category_slug')
+        ->join(
+            'ajobmart_categories c',
+            'c.id = p.category_id',
+            'left'
+        )
+        ->where('p.id', $id)
+        ->where('p.seller_id', $sellerId)
+        ->groupStart()
+            ->where('p.approval_status', 'draft')
+            ->orWhere('p.approval_status', 'approved')
+        ->groupEnd()
+        ->get()
+        ->getRowArray();
 
     if (!$product) {
         return $this->response
@@ -2018,50 +2917,72 @@ public function getDraft(int $id): ResponseInterface
             ]);
     }
 
+    // Determine editing mode.
+    $approvalStatus = strtolower(
+        trim((string) ($product['approval_status'] ?? ''))
+    );
+
+    $isApproved = ($approvalStatus === 'approved');
+
     $attributes = json_decode(
         $product['category_attributes'] ?? '{}',
         true
     ) ?: [];
 
+    // Fetch product images.
     $images = $this->db->table('ajobmart_product_images')
-    ->where('product_id', $id)
-    ->orderBy('sort_order', 'ASC')
-    ->orderBy('id', 'ASC')
-    ->get()
-    ->getResultArray();
+        ->where('product_id', $id)
+        ->orderBy('sort_order', 'ASC')
+        ->orderBy('id', 'ASC')
+        ->get()
+        ->getResultArray();
 
-foreach ($images as &$image) {
-    $path = str_replace(
-        '\\',
-        '/',
-        trim((string) ($image['image_path'] ?? ''))
-    );
+    foreach ($images as &$image) {
 
-    // Remove a leading slash.
-    $path = ltrim($path, '/');
+        $path = str_replace(
+            '\\',
+            '/',
+            trim((string) ($image['image_path'] ?? ''))
+        );
 
-    // If the database stores a full filesystem path, remove the
-    // shared upload directory prefix.
-    $sharedPath = str_replace(
-        '\\',
-        '/',
-        rtrim(getenv('AJOBMART_SHARED_UPLOAD_PATH') ?: '', '/')
-    );
+        $path = ltrim($path, '/');
 
-    if ($sharedPath !== '' && stripos($path, $sharedPath . '/') === 0) {
-        $path = substr($path, strlen($sharedPath) + 1);
+        $sharedPath = str_replace(
+            '\\',
+            '/',
+            rtrim(getenv('AJOBMART_SHARED_UPLOAD_PATH') ?: '', '/')
+        );
+
+        if (
+            $sharedPath !== '' &&
+            stripos($path, $sharedPath . '/') === 0
+        ) {
+            $path = substr($path, strlen($sharedPath) + 1);
+        }
+
+        $image['url'] = site_url('shared-images/' . $path);
     }
 
-    // Generate a browser-accessible URL through the CI4 route.
-    $image['url'] = site_url('shared-images/' . $path);
-}
-unset($image);
+    unset($image);
 
     return $this->response->setJSON([
-        'status'     => 'success',
-        'product'    => $product,
-        'attributes' => $attributes,
-        'images'     => $images,
+        'status'          => 'success',
+        'product'         => $product,
+        'attributes'      => $attributes,
+        'images'           => $images,
+
+        // New editing information.
+        'edit_mode'       => $isApproved ? 'approved' : 'draft',
+        'is_approved'     => $isApproved,
+        'editable_fields' => $isApproved
+            ? [
+                'selling_price',
+                'listing_price',
+                'stock_quantity',
+                'shipping_allowance',
+                'images'
+            ]
+            : ['all'],
     ]);
 }
 

@@ -284,14 +284,21 @@ function renderProducts() {
 
         let actions = '—';
 
-        if (isDraft && Number(p.id) > 0) {
             const editUrl = editProductUrl +
                 '?product_id=' + encodeURIComponent(p.id);
+
+        if (isDraft && Number(p.id) > 0) {
 
             actions =
                 '<a href="' + escapeHtml(editUrl) + '"' +
                 ' class="btn btn-sm btn-outline-primary">' +
                 '<i class="fas fa-edit"></i> Edit Draft' +
+                '</a>';
+        }else{
+            actions =
+                '<a href="' + escapeHtml(editUrl) + '"' +
+                ' class="btn btn-sm btn-outline-warning">' +
+                '<i class="fas fa-edit"></i> Edit' +
                 '</a>';
         }
 
@@ -567,6 +574,126 @@ function renderExistingProductImages(images) {
     renderImages();
 }
 
+
+function applyProductEditMode(editMode) {
+
+    const isApproved =
+        String(editMode || '').trim().toLowerCase() === 'approved';
+
+    const form = document.getElementById('productForm');
+
+    if (!form) {
+        console.error('Product form #productForm not found.');
+        return;
+    }
+
+    if (!isApproved) {
+        console.log('Draft mode: fields remain editable.');
+        return;
+    }
+
+    // Only these fields remain editable for approved products.
+    const allowedFields = [
+        'mrp',
+        'selling_price',
+        'min_order_quantity',
+        'shipping_weight',
+        'description',
+        'product_status',
+        'condition',
+        'manufacturer_name',
+        'packer_name',
+        'key_features',
+        // 'final_listing_price',
+        'stock_quantity',
+        // 'shipping_allowance',
+        'product_images'
+    ];
+
+    form.querySelectorAll('input, select, textarea').forEach(field => {
+
+        const name = String(field.name || '')
+            .replace(/\[\]$/, '');
+
+        const id = String(field.id || '');
+
+        // Hidden fields must remain available for form submission.
+        if (field.type === 'hidden') {
+            return;
+        }
+
+        // Dynamic attributes remain editable.
+        const isDynamicAttribute =
+            !!field.closest('#dynamicAttributes');
+
+        // Check whether this field is explicitly allowed.
+        const isAllowed =
+            allowedFields.includes(name) ||
+            allowedFields.includes(id) ||
+            isDynamicAttribute;
+
+        if (isAllowed) {
+            field.disabled = false;
+            field.readOnly = false;
+            return;
+        }
+
+        // Lock every other field.
+        if (
+            field.tagName === 'SELECT' ||
+            field.type === 'checkbox' ||
+            field.type === 'radio' ||
+            field.type === 'file'
+        ) {
+            field.disabled = true;
+        } else {
+            field.readOnly = true;
+        }
+
+        // Update Select2 if this field uses it.
+        if (
+            window.jQuery &&
+            $(field).hasClass('select2-hidden-accessible')
+        ) {
+            $(field).trigger('change.select2');
+        }
+    });
+
+    // Lock custom category/subcategory/product-type cards.
+    form.querySelectorAll(
+        '.category-card, .subcategory-card, .product-type-card'
+    ).forEach(element => {
+        element.style.pointerEvents = 'none';
+        element.style.opacity = '0.6';
+        element.style.cursor = 'not-allowed';
+    });
+
+    // Prevent label clicks from activating disabled category controls.
+    form.querySelectorAll('label').forEach(label => {
+
+        const control = label.querySelector(
+            'input, select, textarea'
+        );
+
+        if (control && control.disabled) {
+            label.style.pointerEvents = 'none';
+            label.style.cursor = 'not-allowed';
+        }
+    });
+
+    // Give locked fields a different appearance.
+    form.querySelectorAll(
+        'input:disabled, select:disabled, textarea:disabled, ' +
+        'input[readonly], textarea[readonly]'
+    ).forEach(field => {
+        field.style.backgroundColor = '#f1f3f5';
+        field.style.cursor = 'not-allowed';
+    });
+
+    console.log('Approved product: restricted editing enabled.');
+}
+
+
 async function restoreSavedDraft() {
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('product_id');
@@ -787,7 +914,9 @@ async function restoreSavedDraft() {
 
         const product = response.product || {};
         const attributes = response.attributes || {};
-        
+
+        const editMode = response.edit_mode || 'draft';
+
 
         const savedImages = response.images || [];
 
@@ -1020,7 +1149,16 @@ async function restoreSavedDraft() {
             buildReview();
         }
 
-        console.log('Product draft restored successfully:', product.id);
+        // Apply permissions only after all fields,
+        // dependent dropdowns and dynamic attributes are restored.
+        applyProductEditMode(editMode);
+
+        console.log(
+            'Product restored successfully:',
+            product.id,
+            'Edit mode:',
+            editMode
+        );
 
     } catch (error) {
         console.error('Draft restoration failed:', error);
