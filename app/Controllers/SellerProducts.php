@@ -623,95 +623,20 @@ public function getCategoryAttributes($categoryId = null)
 
             // Category-specific fields are stored as JSON.
             
-            $postedAttributes = $this->request->getPost('attributes') ?? [];
+            
+                $postedAttributes = $this->request->getPost('attributes') ?? [];
 
-            if (!is_array($postedAttributes)) {
-                throw new RuntimeException('Invalid category attribute data.');
-            }
+                $attributeResult = $this->prepareCategoryAttributes(
+                    $categoryId,
+                    $subcategoryId,
+                    $productTypeId,
+                    $postedAttributes
+                );
 
-            $categoryAttributeRows = $db->table('ajobmart_category_attributes')
-                ->where('category_id', $categoryId)
-                ->where('status', 'active')
-                ->orderBy('sort_order', 'ASC')
-                ->get()
-                ->getResultArray();
+                $attributes = $attributeResult['attributes'];
 
-            $allowedAttributes = [];
-            $attributes = [];          // For ajobmart_products.category_attributes
-            $attributeValuesToSave = []; // For ajobmart_product_attribute_values
+                $attributeValuesToSave = $attributeResult['attribute_values'];
 
-            foreach ($categoryAttributeRows as $attribute) {
-                $attributeId = (int) $attribute['id'];
-                $allowedAttributes[$attributeId] = $attribute;
-            }
-
-            // Reject submitted IDs that don't belong to this category.
-            foreach ($postedAttributes as $submittedId => $submittedValue) {
-                if (!ctype_digit((string) $submittedId)
-                    || !isset($allowedAttributes[(int) $submittedId])) {
-                    throw new RuntimeException(
-                        'An invalid attribute was submitted for this category.'
-                    );
-                }
-
-                if (!is_scalar($submittedValue) && $submittedValue !== null) {
-                    throw new RuntimeException('Invalid category attribute value.');
-                }
-            }
-
-            foreach ($categoryAttributeRows as $attribute) {
-                $attributeId = (int) $attribute['id'];
-                $attributeName = $attribute['attribute_name'];
-                $label = $attribute['label'] ?: $attributeName;
-
-                $rawValue = $postedAttributes[$attributeId] ?? '';
-                $value = is_scalar($rawValue) ? trim((string) $rawValue) : '';
-
-                // Check required attributes on the server.
-                if ((int) $attribute['is_required'] === 1 && $value === '') {
-                    throw new RuntimeException($label . ' is required.');
-                }
-
-                // Empty optional attributes are not stored.
-                if ($value === '') {
-                    continue;
-                }
-
-                // Validate dropdown values against the database options.
-                if (strtolower($attribute['input_type']) === 'select') {
-                    $options = json_decode(
-                        $attribute['options_json'] ?? '[]',
-                        true
-                    );
-
-                    if (!is_array($options)
-                        || !in_array($value, $options, true)) {
-                        throw new RuntimeException(
-                            'Please select a valid option for ' . $label . '.'
-                        );
-                    }
-                }
-
-                // Validate date fields when the attribute is a date.
-                if (strtolower($attribute['input_type']) === 'date') {
-                    $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
-
-                    if (!$date || $date->format('Y-m-d') !== $value) {
-                        throw new RuntimeException(
-                            'Please enter a valid date for ' . $label . '.'
-                        );
-                    }
-                }
-
-                // Legacy JSON format, keyed by attribute name.
-                $attributes[$attributeName] = $value;
-
-                // Normalized table format, keyed by attribute ID.
-                $attributeValuesToSave[] = [
-                    'attribute_id'    => $attributeId,
-                    'attribute_value' => $value,
-                ];
-            }
 
             
                 $images = $this->request->getFileMultiple('product_images') ?? [];
@@ -1354,123 +1279,33 @@ private function updateApprovedProduct(
 
         $categoryId = (int) $product['category_id'];
 
+                
         $postedAttributes = $this->request->getPost('attributes') ?? [];
 
-        if (!is_array($postedAttributes)) {
-            throw new \RuntimeException(
-                'Invalid category attribute data.'
-            );
-        }
+        $subcategoryId = !empty($product['subcategory_id'])
+            ? (int) $product['subcategory_id']
+            : null;
 
-        $categoryAttributeRows = $db->table('ajobmart_category_attributes')
-            ->where('category_id', $categoryId)
-            ->where('status', 'active')
-            ->orderBy('sort_order', 'ASC')
-            ->get()
-            ->getResultArray();
+        $productTypeId = !empty($product['product_type_id'])
+            ? (int) $product['product_type_id']
+            : null;
 
-        $allowedAttributes = [];
+        $attributeResult = $this->prepareCategoryAttributes(
+            $categoryId,
+            $subcategoryId,
+            $productTypeId,
+            $postedAttributes
+        );
 
-        foreach ($categoryAttributeRows as $attribute) {
-            $allowedAttributes[(int) $attribute['id']] = $attribute;
-        }
+        $attributes = $attributeResult['attributes'];
 
-        // Reject attribute IDs that do not belong to this category.
-        foreach ($postedAttributes as $submittedId => $submittedValue) {
-
-            if (
-                !ctype_digit((string) $submittedId) ||
-                !isset($allowedAttributes[(int) $submittedId])
-            ) {
-                throw new \RuntimeException(
-                    'An invalid attribute was submitted.'
-                );
-            }
-
-            if (!is_scalar($submittedValue) && $submittedValue !== null) {
-                throw new \RuntimeException(
-                    'Invalid category attribute value.'
-                );
-            }
-        }
-
-        $attributes = [];
-        $attributeValuesToSave = [];
-
-        foreach ($categoryAttributeRows as $attribute) {
-
-            $attributeId = (int) $attribute['id'];
-            $attributeName = $attribute['attribute_name'];
-            $label = $attribute['label'] ?: $attributeName;
-
-            $rawValue = $postedAttributes[$attributeId] ?? '';
-
-            $value = is_scalar($rawValue)
-                ? trim((string) $rawValue)
-                : '';
-
-            // Required attribute validation.
-            if (
-                (int) $attribute['is_required'] === 1 &&
-                $value === ''
-            ) {
-                throw new \RuntimeException(
-                    $label . ' is required.'
-                );
-            }
-
-            // Skip empty optional attributes.
-            if ($value === '') {
-                continue;
-            }
-
-            // Validate select options.
-            if (strtolower($attribute['input_type']) === 'select') {
-
-                $options = json_decode(
-                    $attribute['options_json'] ?? '[]',
-                    true
-                );
-
-                if (
-                    !is_array($options) ||
-                    !in_array($value, $options, true)
-                ) {
-                    throw new \RuntimeException(
-                        'Please select a valid option for ' . $label . '.'
-                    );
-                }
-            }
-
-            // Validate date attributes.
-            if (strtolower($attribute['input_type']) === 'date') {
-
-                $date = \DateTimeImmutable::createFromFormat(
-                    '!Y-m-d',
-                    $value
-                );
-
-                if (!$date || $date->format('Y-m-d') !== $value) {
-                    throw new \RuntimeException(
-                        'Please enter a valid date for ' . $label . '.'
-                    );
-                }
-            }
-
-            // Legacy JSON format.
-            $attributes[$attributeName] = $value;
-
-            // Normalized attribute table format.
-            $attributeValuesToSave[] = [
-                'attribute_id'    => $attributeId,
-                'attribute_value' => $value,
-            ];
-        }
+        $attributeValuesToSave = $attributeResult['attribute_values'];
 
         $categoryAttributesJson = json_encode(
             $attributes,
             JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
         );
+
 
         // =========================================
         // 4. Process uploaded images
@@ -1905,6 +1740,41 @@ private function updateApprovedProduct(
             }
         }
 
+
+
+        // --------------------------------------------------
+        // SAVE NORMALIZED DRAFT ATTRIBUTE VALUES
+        // --------------------------------------------------
+
+        $db->table('ajobmart_product_attribute_values')
+            ->where('product_id', $productId)
+            ->delete();
+
+        if (!empty($attributeValuesToSave)) {
+
+            $attributeInsertRows = [];
+
+            foreach ($attributeValuesToSave as $attributeValue) {
+
+                $attributeInsertRows[] = [
+                    'product_id'      => $productId,
+                    'attribute_id'    => (int) $attributeValue['attribute_id'],
+                    'attribute_value' => $attributeValue['attribute_value'],
+                    'created_at'      => $now,
+                    'updated_at'      => $now,
+                ];
+            }
+
+            if (!$db->table('ajobmart_product_attribute_values')
+                ->insertBatch($attributeInsertRows)) {
+
+                throw new \RuntimeException(
+                    'Unable to save draft category attributes.'
+                );
+            }
+        }
+
+
         // =========================================
         // 14. Commit transaction
         // =========================================
@@ -2186,59 +2056,48 @@ private function saveDraft(): ResponseInterface
         // --------------------------------------------------
         // CATEGORY-SPECIFIC ATTRIBUTES
         // --------------------------------------------------
-        $postedAttributes = $this->request->getPost('attributes');
 
-        if ($postedAttributes !== null) {
-            if (!is_array($postedAttributes)) {
-                throw new \RuntimeException(
-                    'Invalid category attributes submitted.'
-                );
-            }
+        $postedAttributes = $this->request->getPost('attributes') ?? [];
 
-            $attributeRows = $db->table('ajobmart_category_attributes')
-                ->where('category_id', $categoryId)
-                ->where('status', 'active')
-                ->get()
-                ->getResultArray();
+        // Use posted category selections or preserve existing draft selections.
+        $subcategoryId = $this->request->getPost('subcategory_id');
 
-            $allowed = [];
-
-            foreach ($attributeRows as $row) {
-                $allowed[(int) $row['id']] = $row;
-            }
-
-            $attributes = [];
-
-            foreach ($postedAttributes as $id => $value) {
-                if (
-                    !ctype_digit((string) $id) ||
-                    !isset($allowed[(int) $id])
-                ) {
-                    throw new \RuntimeException(
-                        'Invalid category attribute submitted.'
-                    );
-                }
-
-                if (!is_scalar($value) && $value !== null) {
-                    throw new \RuntimeException(
-                        'Invalid category attribute value.'
-                    );
-                }
-
-                $value = trim((string) ($value ?? ''));
-
-                if ($value !== '') {
-                    $attributes[
-                        $allowed[(int) $id]['attribute_name']
-                    ] = $value;
-                }
-            }
-
-            $data['category_attributes'] = json_encode(
-                $attributes,
-                JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
-            );
+        if ($subcategoryId === null || $subcategoryId === '') {
+            $subcategoryId = $existing['subcategory_id'] ?? null;
         }
+
+        $subcategoryId = ($subcategoryId !== null && $subcategoryId !== '')
+            ? (int) $subcategoryId
+            : null;
+
+        $productTypeId = $this->request->getPost('product_type_id');
+
+        if ($productTypeId === null || $productTypeId === '') {
+            $productTypeId = $existing['product_type_id'] ?? null;
+        }
+
+        $productTypeId = ($productTypeId !== null && $productTypeId !== '')
+            ? (int) $productTypeId
+            : null;
+
+        // Drafts can contain incomplete required attributes.
+        $attributeResult = $this->prepareCategoryAttributes(
+            $categoryId,
+            $subcategoryId,
+            $productTypeId,
+            $postedAttributes,
+            false
+        );
+
+        $attributes = $attributeResult['attributes'];
+
+        $attributeValuesToSave = $attributeResult['attribute_values'];
+
+        $data['category_attributes'] = json_encode(
+            $attributes,
+            JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+        );
+
 
         // --------------------------------------------------
         // DEFAULTS FOR NEW DRAFTS
@@ -2439,6 +2298,52 @@ private function saveDraft(): ResponseInterface
             $productId = (int) $newProductId;
         }
 
+
+
+        // --------------------------------------------------
+        // SAVE DRAFT CATEGORY ATTRIBUTE VALUES
+        // --------------------------------------------------
+
+        // First delete previously saved attribute values.
+        // This ensures that changed or unchecked checkbox
+        // selections are correctly reflected.
+        $deleteAttributes = $db->table('ajobmart_product_attribute_values')
+            ->where('product_id', $productId)
+            ->delete();
+
+        if ($deleteAttributes === false) {
+            throw new \RuntimeException(
+                'Unable to remove previous draft attribute values.'
+            );
+        }
+
+        // Insert the latest attribute values.
+        if (!empty($attributeValuesToSave)) {
+
+            $attributeInsertRows = [];
+
+            foreach ($attributeValuesToSave as $attributeValue) {
+
+                $attributeInsertRows[] = [
+                    'product_id'      => $productId,
+                    'attribute_id'    => (int) $attributeValue['attribute_id'],
+                    'attribute_value' => $attributeValue['attribute_value'],
+                    'created_at'      => $now,
+                    'updated_at'      => $now,
+                ];
+            }
+
+            $insertResult = $db->table('ajobmart_product_attribute_values')
+                ->insertBatch($attributeInsertRows);
+
+            if ($insertResult === false) {
+                throw new \RuntimeException(
+                    'Unable to save draft category attribute values.'
+                );
+            }
+        }
+
+
         // --------------------------------------------------
         // VERIFY DRAFT OWNERSHIP BEFORE SAVING IMAGES
         // --------------------------------------------------
@@ -2576,6 +2481,270 @@ private function saveDraft(): ResponseInterface
                 'message' => $e->getMessage(),
             ]);
     }
+}
+
+
+
+private function prepareCategoryAttributes(
+    int $categoryId,
+    ?int $subcategoryId,
+    ?int $productTypeId,
+    $postedAttributes,
+    bool $validateRequired = true
+): array {
+
+    $db = $this->db;
+
+    if (!is_array($postedAttributes)) {
+        throw new \RuntimeException('Invalid category attribute data.');
+    }
+
+    // Get active attributes for this category.
+    $allRows = $db->table('ajobmart_category_attributes')
+        ->where('category_id', $categoryId)
+        ->where('status', 'active')
+        ->orderBy('sort_order', 'ASC')
+        ->get()
+        ->getResultArray();
+
+    $categoryAttributeRows = [];
+
+    // Include general attributes and attributes matching
+    // the selected subcategory and product type.
+    foreach ($allRows as $row) {
+
+        $rowSubcategoryId = (
+            $row['subcategory_id'] !== null &&
+            $row['subcategory_id'] !== ''
+        ) ? (int) $row['subcategory_id'] : null;
+
+        $rowProductTypeId = (
+            $row['product_type_id'] !== null &&
+            $row['product_type_id'] !== ''
+        ) ? (int) $row['product_type_id'] : null;
+
+        if (
+            $rowSubcategoryId !== null &&
+            $rowSubcategoryId !== $subcategoryId
+        ) {
+            continue;
+        }
+
+        if (
+            $rowProductTypeId !== null &&
+            $rowProductTypeId !== $productTypeId
+        ) {
+            continue;
+        }
+
+        $categoryAttributeRows[] = $row;
+    }
+
+    // Build the allowed attribute ID list.
+    $allowedAttributes = [];
+
+    foreach ($categoryAttributeRows as $row) {
+        $allowedAttributes[(int) $row['id']] = $row;
+    }
+
+    // Reject attribute IDs that do not belong to this selection.
+    foreach ($postedAttributes as $submittedId => $submittedValue) {
+
+        if (
+            !ctype_digit((string) $submittedId) ||
+            !isset($allowedAttributes[(int) $submittedId])
+        ) {
+            throw new \RuntimeException(
+                'An invalid attribute was submitted for this category.'
+            );
+        }
+    }
+
+    $attributes = [];
+    $attributeValuesToSave = [];
+
+    foreach ($categoryAttributeRows as $attribute) {
+
+        $attributeId = (int) $attribute['id'];
+
+        $attributeName = $attribute['attribute_name'];
+
+        $label = $attribute['label'] ?: $attributeName;
+
+        $inputType = strtolower(
+            trim((string) ($attribute['input_type'] ?? 'text'))
+        );
+
+        $isRequired = (int) $attribute['is_required'] === 1;
+
+        $rawValue = $postedAttributes[$attributeId] ?? null;
+
+        // Parse options_json.
+        $options = json_decode(
+            $attribute['options_json'] ?? '[]',
+            true
+        );
+
+        if (!is_array($options)) {
+            $options = [];
+        }
+
+        // Convert options into a list of allowed values.
+        $allowedOptionValues = [];
+
+        foreach ($options as $option) {
+
+            if (is_array($option)) {
+                if (array_key_exists('value', $option)) {
+                    $allowedOptionValues[] = (string) $option['value'];
+                }
+            } elseif (is_scalar($option)) {
+                $allowedOptionValues[] = (string) $option;
+            }
+        }
+
+        // =========================================
+        // CHECKBOX GROUP
+        // =========================================
+
+        if ($inputType === 'checkbox') {
+
+            if ($rawValue === null || $rawValue === '') {
+                $selectedValues = [];
+            } elseif (is_array($rawValue)) {
+                $selectedValues = $rawValue;
+            } elseif (is_scalar($rawValue)) {
+                // Backward compatibility with older single-value checkbox data.
+                $selectedValues = [$rawValue];
+            } else {
+                throw new \RuntimeException(
+                    'Invalid checkbox values for ' . $label . '.'
+                );
+            }
+
+            $cleanValues = [];
+
+            foreach ($selectedValues as $selectedValue) {
+
+                if (!is_scalar($selectedValue)) {
+                    throw new \RuntimeException(
+                        'Invalid checkbox option for ' . $label . '.'
+                    );
+                }
+
+                $selectedValue = trim((string) $selectedValue);
+
+                if ($selectedValue === '') {
+                    continue;
+                }
+
+                // Every selected option must exist in options_json.
+                if (!in_array(
+                    $selectedValue,
+                    $allowedOptionValues,
+                    true
+                )) {
+                    throw new \RuntimeException(
+                        'Invalid option selected for ' . $label . '.'
+                    );
+                }
+
+                if (!in_array($selectedValue, $cleanValues, true)) {
+                    $cleanValues[] = $selectedValue;
+                }
+            }
+
+            if ($validateRequired && $isRequired && empty($cleanValues)) {
+                throw new \RuntimeException(
+                    'Please select at least one option for ' . $label . '.'
+                );
+            }
+
+            if (empty($cleanValues)) {
+                continue;
+            }
+
+            // Store an array in the legacy category_attributes JSON.
+            $attributes[$attributeName] = $cleanValues;
+
+            // Store the selected options as JSON in the normalized table.
+            $attributeValuesToSave[] = [
+                'attribute_id'    => $attributeId,
+                'attribute_value' => json_encode(
+                    $cleanValues,
+                    JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+                ),
+            ];
+
+            continue;
+        }
+
+        // =========================================
+        // NORMAL SCALAR ATTRIBUTES
+        // =========================================
+
+        if ($rawValue === null || $rawValue === '') {
+            $value = '';
+        } elseif (is_scalar($rawValue)) {
+            $value = trim((string) $rawValue);
+        } else {
+            throw new \RuntimeException(
+                'Invalid category attribute value for ' . $label . '.'
+            );
+        }
+
+        if ($validateRequired && $isRequired && $value === '') {
+            throw new \RuntimeException($label . ' is required.');
+        }
+
+        if ($value === '') {
+            continue;
+        }
+
+        // =========================================
+        // SELECT VALIDATION
+        // =========================================
+
+        if ($inputType === 'select') {
+
+            if (!in_array($value, $allowedOptionValues, true)) {
+                throw new \RuntimeException(
+                    'Please select a valid option for ' . $label . '.'
+                );
+            }
+        }
+
+        // =========================================
+        // DATE VALIDATION
+        // =========================================
+
+        if ($inputType === 'date') {
+
+            $date = \DateTimeImmutable::createFromFormat(
+                '!Y-m-d',
+                $value
+            );
+
+            if (!$date || $date->format('Y-m-d') !== $value) {
+                throw new \RuntimeException(
+                    'Please enter a valid date for ' . $label . '.'
+                );
+            }
+        }
+
+        // Save scalar attribute.
+        $attributes[$attributeName] = $value;
+
+        $attributeValuesToSave[] = [
+            'attribute_id'    => $attributeId,
+            'attribute_value' => $value,
+        ];
+    }
+
+    return [
+        'attributes' => $attributes,
+        'attribute_values' => $attributeValuesToSave,
+    ];
 }
 
 

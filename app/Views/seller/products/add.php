@@ -530,6 +530,167 @@
 
 
 
+/* =========================================
+   DYNAMIC ATTRIBUTE FIELDS
+========================================= */
+
+.field {
+    margin-bottom: 20px;
+}
+
+.field > label {
+    display: block;
+    margin-bottom: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #263238;
+}
+
+/* =========================================
+   NORMAL INPUTS AND SELECT
+========================================= */
+
+.field input:not([type="checkbox"]),
+.field select,
+.field textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid #dcdfe4;
+    border-radius: 7px;
+    background: #fff;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field textarea {
+    min-height: 85px;
+    resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.10);
+}
+
+/* =========================================
+   CHECKBOX GROUP
+========================================= */
+
+.attribute-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+/* Individual checkbox option */
+
+.attribute-checkbox-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-height: 38px;
+    padding: 8px 14px;
+
+    border: 1px solid #dfe3e8;
+    border-radius: 7px;
+
+    background: #fff;
+    color: #374151;
+
+    font-size: 13px;
+    font-weight: 500;
+
+    cursor: pointer;
+    user-select: none;
+
+    transition: all 0.2s ease;
+}
+
+/* Checkbox input */
+
+.attribute-checkbox-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+
+    flex-shrink: 0;
+
+    cursor: pointer;
+    accent-color: #198754;
+}
+
+/* Hover effect */
+
+.attribute-checkbox-item:hover {
+    border-color: #198754;
+    background: #f7fff9;
+}
+
+/* Selected checkbox */
+
+.attribute-checkbox-item:has(input[type="checkbox"]:checked) {
+    border-color: #198754;
+    background: #effaf3;
+    color: #157347;
+}
+
+/* Selected checkbox text */
+
+.attribute-checkbox-item:has(input[type="checkbox"]:checked) span {
+    font-weight: 600;
+}
+
+/* Keyboard focus */
+
+.attribute-checkbox-item input[type="checkbox"]:focus-visible {
+    outline: 2px solid #198754;
+    outline-offset: 3px;
+}
+
+/* =========================================
+   CHECKBOX VALIDATION ERROR
+========================================= */
+
+.attribute-checkbox-error {
+    flex-basis: 100%;
+    width: 100%;
+    margin-top: 3px;
+    font-size: 12px;
+}
+
+/* =========================================
+   MOBILE RESPONSIVE
+========================================= */
+
+@media (max-width: 576px) {
+
+    .attribute-checkbox-group {
+        gap: 8px;
+    }
+
+    .attribute-checkbox-item {
+        min-height: 36px;
+        padding: 7px 11px;
+        font-size: 12px;
+    }
+
+    .attribute-checkbox-item input[type="checkbox"] {
+        width: 15px;
+        height: 15px;
+    }
+}
+
+
+
 </style>
 
 <div class="page">
@@ -2419,7 +2580,9 @@ function selectedCategoryName() {
         : '';
 }
 
+
 function createAttributeField(attribute) {
+
     const wrapper = document.createElement('div');
     wrapper.className = 'field';
 
@@ -2427,9 +2590,12 @@ function createAttributeField(attribute) {
     label.htmlFor = 'attribute_' + attribute.id;
     label.textContent = attribute.label || attribute.attribute_name;
 
-    if (Number(attribute.is_required) === 1) {
+    const isRequired = Number(attribute.is_required) === 1;
+
+    if (isRequired) {
         const required = document.createElement('span');
         required.textContent = ' *';
+        required.style.color = 'red';
         label.appendChild(required);
     }
 
@@ -2440,7 +2606,35 @@ function createAttributeField(attribute) {
 
     let control;
 
+    // =========================================
+    // PARSE OPTIONS JSON
+    // =========================================
+
+    let options = [];
+
+    try {
+        options = attribute.options_json
+            ? JSON.parse(attribute.options_json)
+            : [];
+
+        if (!Array.isArray(options)) {
+            options = [];
+        }
+
+    } catch (error) {
+        console.error(
+            'Invalid options_json for attribute:',
+            attribute.id,
+            error
+        );
+    }
+
+    // =========================================
+    // SELECT FIELD
+    // =========================================
+
     if (type === 'select') {
+
         control = document.createElement('select');
 
         const placeholder = document.createElement('option');
@@ -2450,32 +2644,158 @@ function createAttributeField(attribute) {
 
         control.appendChild(placeholder);
 
-        let options = [];
+        options.forEach(optionValue => {
 
-        try {
-            options = attribute.options_json
-                ? JSON.parse(attribute.options_json)
-                : [];
-        } catch (error) {
-            console.error('Invalid options_json:', attribute.id);
-        }
+            const value = typeof optionValue === 'object'
+                ? optionValue.value
+                : optionValue;
 
-        if (Array.isArray(options)) {
-            options.forEach(optionValue => {
-                const option = document.createElement('option');
-                option.value = String(optionValue);
-                option.textContent = String(optionValue);
-                control.appendChild(option);
+            const text = typeof optionValue === 'object'
+                ? (optionValue.label || optionValue.value)
+                : optionValue;
+
+            const option = document.createElement('option');
+
+            option.value = String(value ?? '');
+            option.textContent = String(text ?? '');
+
+            control.appendChild(option);
+        });
+
+        control.required = isRequired;
+
+        control.id = fieldId;
+        control.name = fieldName;
+
+        control.dataset.attributeName = attribute.attribute_name;
+
+        wrapper.append(label, control);
+
+    }
+
+    // =========================================
+    // CHECKBOX GROUP
+    // =========================================
+
+    else if (type === 'checkbox') {
+
+        const checkboxContainer = document.createElement('div');
+
+        checkboxContainer.className = 'attribute-checkbox-group';
+
+        checkboxContainer.dataset.attributeId = attribute.id;
+
+        options.forEach((optionValue, index) => {
+
+            const value = typeof optionValue === 'object'
+                ? optionValue.value
+                : optionValue;
+
+            const text = typeof optionValue === 'object'
+                ? (optionValue.label || optionValue.value)
+                : optionValue;
+
+            const checkboxWrapper = document.createElement('label');
+
+            checkboxWrapper.className = 'attribute-checkbox-item';
+
+            const checkbox = document.createElement('input');
+
+            checkbox.type = 'checkbox';
+
+            checkbox.name = fieldName + '[]';
+
+            checkbox.value = String(value ?? '');
+
+            checkbox.id = fieldId + '_' + index;
+
+            checkbox.className = 'attribute-checkbox';
+
+            checkbox.dataset.attributeName = attribute.attribute_name;
+
+            checkbox.dataset.attributeId = attribute.id;
+
+            // Mark the checkbox group as required.
+            // Group validation is handled separately below.
+            if (isRequired) {
+                checkbox.dataset.requiredGroup = '1';
+            }
+
+            const checkboxText = document.createElement('span');
+
+            checkboxText.textContent = String(text ?? '');
+
+            checkboxWrapper.append(checkbox, checkboxText);
+
+            checkboxContainer.appendChild(checkboxWrapper);
+        });
+
+        wrapper.append(label, checkboxContainer);
+
+        // Required checkbox group validation
+        if (isRequired) {
+
+            const errorMessage = document.createElement('small');
+
+            errorMessage.className = 'attribute-checkbox-error';
+
+            errorMessage.textContent = 'Please select at least one option.';
+
+            errorMessage.style.display = 'none';
+
+            errorMessage.style.color = 'red';
+
+            checkboxContainer.appendChild(errorMessage);
+
+            checkboxContainer.addEventListener('change', function () {
+
+                const checked = checkboxContainer.querySelectorAll(
+                    'input[type="checkbox"]:checked'
+                );
+
+                errorMessage.style.display =
+                    checked.length > 0 ? 'none' : 'block';
+
             });
         }
-    } else if (type === 'textarea') {
+
+    }
+
+    // =========================================
+    // TEXTAREA FIELD
+    // =========================================
+
+    else if (type === 'textarea') {
+
         control = document.createElement('textarea');
+
         control.rows = 3;
-    } else {
+
+        control.required = isRequired;
+
+        control.id = fieldId;
+        control.name = fieldName;
+
+        control.dataset.attributeName = attribute.attribute_name;
+
+        wrapper.append(label, control);
+
+    }
+
+    // =========================================
+    // NORMAL INPUT FIELD
+    // =========================================
+
+    else {
+
         control = document.createElement('input');
 
         const allowedTypes = [
-            'text', 'number', 'date', 'email', 'url'
+            'text',
+            'number',
+            'date',
+            'email',
+            'url'
         ];
 
         control.type = allowedTypes.includes(type) ? type : 'text';
@@ -2483,18 +2803,20 @@ function createAttributeField(attribute) {
         if (control.type === 'number') {
             control.step = 'any';
         }
+
+        control.id = fieldId;
+        control.name = fieldName;
+
+        control.dataset.attributeName = attribute.attribute_name;
+
+        control.required = isRequired;
+
+        wrapper.append(label, control);
     }
-
-    control.id = fieldId;
-    control.name = fieldName;
-    control.dataset.attributeName = attribute.attribute_name;
-    // select.dataset.attributeName = attribute.name;
-    control.required = Number(attribute.is_required) === 1;
-
-    wrapper.append(label, control);
 
     return wrapper;
 }
+
 
 let attributeRequestId = 0;
 
