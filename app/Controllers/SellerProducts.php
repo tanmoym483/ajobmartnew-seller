@@ -1063,7 +1063,6 @@ public function getCategoryAttributes($categoryId = null)
 
 
 
-
 private function updateApprovedProduct(
     int $productId,
     int $sellerId
@@ -1095,13 +1094,11 @@ private function updateApprovedProduct(
             ]);
         }
 
-        // Existing category is always used.
-        // Never accept locked category IDs from POST.
         $categoryId = (int) $product['category_id'];
 
-        // =====================================================
+        // =========================================
         // 2. Validate editable fields
-        // =====================================================
+        // =========================================
 
         $rules = [
 
@@ -1179,17 +1176,13 @@ private function updateApprovedProduct(
             ]);
         }
 
-        // =====================================================
+        // =========================================
         // 3. Read editable fields
-        // =====================================================
+        // =========================================
 
         $mrp = (float) $this->request->getPost('mrp');
 
         $sellingPrice = (float) $this->request->getPost('selling_price');
-
-        // These are calculated by the frontend.
-        // They are submitted as hidden/readonly fields.
-        // They are not editable fields in approved mode.
 
         $listingPrice = (float) $this->request->getPost(
             'final_listing_price'
@@ -1240,9 +1233,9 @@ private function updateApprovedProduct(
             (string) $this->request->getPost('key_features')
         );
 
-        // =====================================================
+        // =========================================
         // 4. Additional price and weight validation
-        // =====================================================
+        // =========================================
 
         if ($sellingPrice > $mrp) {
             return $this->response->setStatusCode(422)->setJSON([
@@ -1271,15 +1264,11 @@ private function updateApprovedProduct(
         }
 
         // =========================================
-        // 3. Prepare dynamic attributes
+        // 5. Prepare dynamic attributes
         // =========================================
-
-        // Use the EXISTING product category selections.
-        // Never accept category IDs from the approved-product form.
 
         $categoryId = (int) $product['category_id'];
 
-                
         $postedAttributes = $this->request->getPost('attributes') ?? [];
 
         $subcategoryId = !empty($product['subcategory_id'])
@@ -1306,9 +1295,8 @@ private function updateApprovedProduct(
             JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
         );
 
-
         // =========================================
-        // 4. Process uploaded images
+        // 6. Process uploaded images
         // =========================================
 
         $images = $this->request->getFileMultiple('product_images') ?? [];
@@ -1364,6 +1352,136 @@ private function updateApprovedProduct(
                 )
         ));
 
+        // =========================================
+        // 7. Determine selected primary image
+        // =========================================
+
+        // Frontend sends:
+        // primary_image_index = -1 when no new image is selected
+        // primary_image_index = 0, 1, 2... for a new image
+        //
+        // primary_existing_image_id = existing image database ID
+        // when an existing image is selected as primary.
+
+        $primaryExistingImageId = $this->request->getPost(
+            'primary_existing_image_id'
+        );
+
+        $primaryImageIndex = $this->request->getPost(
+            'primary_image_index'
+        );
+
+        $selectedPrimaryType = null;
+        $selectedPrimaryValue = null;
+
+        // First check whether an existing image was selected.
+
+        if (
+            $primaryExistingImageId !== null &&
+            trim((string) $primaryExistingImageId) !== ''
+        ) {
+
+            $selectedId = filter_var(
+                $primaryExistingImageId,
+                FILTER_VALIDATE_INT
+            );
+
+            $remainingIds = array_map(
+                static fn ($image) => (int) $image['id'],
+                $remainingImages
+            );
+
+            if (
+                $selectedId === false ||
+                $selectedId <= 0 ||
+                !in_array((int) $selectedId, $remainingIds, true)
+            ) {
+                return $this->response->setStatusCode(422)->setJSON([
+                    'status'  => 'error',
+                    'message' => 'Invalid primary image selection.',
+                ]);
+            }
+
+            $selectedPrimaryType = 'existing';
+            $selectedPrimaryValue = (int) $selectedId;
+        }
+
+        // Otherwise check whether a newly uploaded image was selected.
+
+        elseif (
+            $primaryImageIndex !== null &&
+            trim((string) $primaryImageIndex) !== ''
+        ) {
+
+            $selectedIndex = filter_var(
+                $primaryImageIndex,
+                FILTER_VALIDATE_INT
+            );
+
+            if ($selectedIndex === false || $selectedIndex < -1) {
+                return $this->response->setStatusCode(422)->setJSON([
+                    'status'  => 'error',
+                    'message' => 'Invalid primary image selection.',
+                ]);
+            }
+
+            // -1 means no new primary image was selected.
+            // Preserve the existing primary image in that case.
+
+            if ($selectedIndex >= 0) {
+
+                if (!isset($images[$selectedIndex])) {
+                    return $this->response->setStatusCode(422)->setJSON([
+                        'status'  => 'error',
+                        'message' => 'Invalid new primary image selection.',
+                    ]);
+                }
+
+                $selectedPrimaryType = 'new';
+                $selectedPrimaryValue = $selectedIndex;
+            }
+        }
+
+        // If no new primary selection is submitted,
+        // preserve the existing primary image.
+
+        if ($selectedPrimaryType === null) {
+
+            foreach ($remainingImages as $image) {
+
+                if ((int) ($image['is_primary'] ?? 0) === 1) {
+
+                    $selectedPrimaryType = 'existing';
+                    $selectedPrimaryValue = (int) $image['id'];
+
+                    break;
+                }
+            }
+
+            // If previous primary was removed,
+            // select the first remaining existing image.
+
+            if (
+                $selectedPrimaryType === null &&
+                !empty($remainingImages)
+            ) {
+                $selectedPrimaryType = 'existing';
+
+                $selectedPrimaryValue = (int) $remainingImages[0]['id'];
+            }
+
+            // If no existing image remains,
+            // select the first newly uploaded image.
+
+            if (
+                $selectedPrimaryType === null &&
+                !empty($images)
+            ) {
+                $selectedPrimaryType = 'new';
+                $selectedPrimaryValue = 0;
+            }
+        }
+
         $totalImages = count($remainingImages) + count($images);
 
         if ($totalImages < 1 || $totalImages > 8) {
@@ -1374,7 +1492,7 @@ private function updateApprovedProduct(
         }
 
         // =========================================
-        // 5. Prepare shared upload directory
+        // 8. Prepare shared upload directory
         // =========================================
 
         $sharedRoot = str_replace(
@@ -1415,7 +1533,7 @@ private function updateApprovedProduct(
         }
 
         // =========================================
-        // 6. Convert new images to WebP
+        // 9. Convert new images to WebP
         // =========================================
 
         $convertedImages = [];
@@ -1483,6 +1601,7 @@ private function updateApprovedProduct(
             imagesavealpha($image, true);
 
             $filename = bin2hex(random_bytes(16)) . '.webp';
+
             $destination = $absoluteDir . '/' . $filename;
 
             if (!imagewebp($image, $destination, 85)) {
@@ -1505,21 +1624,7 @@ private function updateApprovedProduct(
         }
 
         // =========================================
-        // 7. Determine primary image
-        // =========================================
-
-        $hasPrimary = false;
-
-        foreach ($remainingImages as $image) {
-
-            if ((int) ($image['is_primary'] ?? 0) === 1) {
-                $hasPrimary = true;
-                break;
-            }
-        }
-
-        // =========================================
-        // 8. Begin database transaction
+        // 10. Begin database transaction
         // =========================================
 
         if ($db->transBegin() === false) {
@@ -1531,11 +1636,7 @@ private function updateApprovedProduct(
         $transactionStarted = true;
 
         // =========================================
-        // 9. Update approved product fields
-        // =========================================
-
-        // =========================================
-        // 9. Update complete approved product data
+        // 11. Update approved product fields
         // =========================================
 
         $updateData = [
@@ -1605,20 +1706,8 @@ private function updateApprovedProduct(
             );
         }
 
-        $updated = $db->table('ajobmart_products')
-            ->where('id', $productId)
-            ->where('seller_id', $sellerId)
-            ->where('approval_status', 'approved')
-            ->update($updateData);
-
-        if ($updated === false) {
-            throw new \RuntimeException(
-                'Unable to update approved product details.'
-            );
-        }
-
         // =========================================
-        // 10. Replace normalized dynamic attributes
+        // 12. Replace normalized dynamic attributes
         // =========================================
 
         $deletedAttributes = $db->table(
@@ -1662,7 +1751,7 @@ private function updateApprovedProduct(
         }
 
         // =========================================
-        // 11. Delete selected image records
+        // 13. Delete selected image records
         // =========================================
 
         foreach ($removedImageIds as $imageId) {
@@ -1684,16 +1773,17 @@ private function updateApprovedProduct(
         }
 
         // =========================================
-        // 12. Insert new image records
+        // 14. Insert new image records
         // =========================================
+
+        $newImageIds = [];
 
         foreach ($convertedImages as $index => $imageData) {
 
             $imageData['product_id'] = $productId;
 
-            $imageData['is_primary'] = (
-                !$hasPrimary && $index === 0
-            ) ? 1 : 0;
+            // Primary image is assigned separately below.
+            $imageData['is_primary'] = 0;
 
             $imageData['sort_order'] =
                 count($remainingImages) + $index;
@@ -1709,42 +1799,64 @@ private function updateApprovedProduct(
                 );
             }
 
-            if ($imageData['is_primary'] === 1) {
-                $hasPrimary = true;
-            }
+            $newImageIds[$index] = (int) $db->insertID();
         }
 
         // =========================================
-        // 13. Ensure one primary image exists
+        // 15. Update primary product image
         // =========================================
 
-        if (!$hasPrimary) {
+        // Reset every image to non-primary first.
 
-            $firstImage = $db->table('ajobmart_product_images')
-                ->where('product_id', $productId)
-                ->orderBy('sort_order', 'ASC')
-                ->orderBy('id', 'ASC')
-                ->get()
-                ->getRowArray();
+        $resetPrimary = $db->table('ajobmart_product_images')
+            ->where('product_id', $productId)
+            ->update([
+                'is_primary' => 0,
+            ]);
 
-            if ($firstImage) {
-
-                $db->table('ajobmart_product_images')
-                    ->where('product_id', $productId)
-                    ->update(['is_primary' => 0]);
-
-                $db->table('ajobmart_product_images')
-                    ->where('id', $firstImage['id'])
-                    ->where('product_id', $productId)
-                    ->update(['is_primary' => 1]);
-            }
+        if ($resetPrimary === false) {
+            throw new \RuntimeException(
+                'Unable to reset primary product image.'
+            );
         }
 
+        // Determine selected image database ID.
 
+        $primaryImageId = null;
 
-        // --------------------------------------------------
-        // SAVE NORMALIZED DRAFT ATTRIBUTE VALUES
-        // --------------------------------------------------
+        if ($selectedPrimaryType === 'existing') {
+
+            $primaryImageId = (int) $selectedPrimaryValue;
+
+        } elseif ($selectedPrimaryType === 'new') {
+
+            $primaryImageId = $newImageIds[$selectedPrimaryValue] ?? null;
+        }
+
+        if (!$primaryImageId) {
+            throw new \RuntimeException(
+                'Unable to determine the primary product image.'
+            );
+        }
+
+        // Mark selected image as primary.
+
+        $primaryUpdated = $db->table('ajobmart_product_images')
+            ->where('product_id', $productId)
+            ->where('id', $primaryImageId)
+            ->update([
+                'is_primary' => 1,
+            ]);
+
+        if ($primaryUpdated === false) {
+            throw new \RuntimeException(
+                'Unable to update primary product image.'
+            );
+        }
+
+        // =========================================
+        // 16. Save normalized draft attribute values
+        // =========================================
 
         $db->table('ajobmart_product_attribute_values')
             ->where('product_id', $productId)
@@ -1774,9 +1886,8 @@ private function updateApprovedProduct(
             }
         }
 
-
         // =========================================
-        // 14. Commit transaction
+        // 17. Commit transaction
         // =========================================
 
         if (!$db->transStatus()) {
@@ -1786,10 +1897,11 @@ private function updateApprovedProduct(
         }
 
         $db->transCommit();
+
         $transactionStarted = false;
 
         // =========================================
-        // 15. Delete physical removed image files
+        // 18. Delete physical removed image files
         // =========================================
 
         foreach ($filesToDelete as $relativePath) {
@@ -1805,7 +1917,6 @@ private function updateApprovedProduct(
 
             $fullPath = $sharedRoot . '/' . $relativePath;
 
-            // Confirm the file is inside the shared upload directory.
             $realRoot = realpath($sharedRoot);
             $realFile = realpath($fullPath);
 
@@ -1835,7 +1946,8 @@ private function updateApprovedProduct(
             $db->transRollback();
         }
 
-        // Remove newly generated files if the update failed.
+        // Remove newly generated files if update failed.
+
         foreach ($savedFiles as $path) {
 
             if (is_file($path)) {
@@ -1855,8 +1967,6 @@ private function updateApprovedProduct(
         ]);
     }
 }
-
-
     
 
 private function saveDraft(): ResponseInterface
